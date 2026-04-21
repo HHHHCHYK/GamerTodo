@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:HeyeTodo.Client.ViewModels"
+             xmlns:loc="using:HeyeTodo.Client.Infrastructure.Localization"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="HeyeTodo.Client.Views.RegisterView"
+             x:DataType="vm:RegisterViewModel">
+
+    <Border MaxWidth="360" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24">
+        <StackPanel Spacing="14">
+            <TextBlock Text="{loc:T Key=Auth.Register}" FontSize="24" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+
+            <TextBox PlaceholderText="{loc:T Key=Auth.Email}" Text="{Binding Email}"/>
+            <TextBox PlaceholderText="{loc:T Key=Auth.DisplayName}" Text="{Binding DisplayName}"/>
+            <TextBox PlaceholderText="{loc:T Key=Auth.Password}" Text="{Binding Password}" PasswordChar="*"/>
+
+            <TextBlock Text="{Binding ErrorMessage}"
+                       Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}"
+                       IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+
+            <Button Content="{loc:T Key=Auth.Register}" Command="{Binding RegisterCommand}"
+                    IsEnabled="{Binding !IsBusy}" HorizontalAlignment="Stretch" Classes="accent"/>
+
+            <Button Content="{loc:T Key=Common.Cancel}" Command="{Binding BackToLoginCommand}"
+                    HorizontalAlignment="Stretch"/>
+        </StackPanel>
+    </Border>
+
+</UserControl>

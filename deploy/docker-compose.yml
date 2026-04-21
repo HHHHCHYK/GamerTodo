@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: heyetodo-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: heyetodo
+      POSTGRES_USER: heyetodo
+      POSTGRES_PASSWORD: heyetodo
+    ports:
+      - "5432:5432"
+    volumes:
+      - heyetodo-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U heyetodo -d heyetodo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: ..
+      dockerfile: src/HeyeTodo.Server/Dockerfile
+    container_name: heyetodo-server
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Default: Host=postgres;Port=5432;Database=heyetodo;Username=heyetodo;Password=heyetodo
+      Jwt__Issuer: HeyeTodo
+      Jwt__Audience: HeyeTodo.Client
+      Jwt__SigningKey: change-this-in-production-please-32bytes-minimum
+      Jwt__AccessTokenMinutes: 30
+      Jwt__RefreshTokenDays: 30
+    ports:
+      - "8080:8080"
+
+volumes:
+  heyetodo-postgres-data:

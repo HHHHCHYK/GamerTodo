@@ -1,0 +1,115 @@
+using System;
+using System.Net.Http;
+using HeyeTodo.Client.Data;
+using HeyeTodo.Client.Infrastructure;
+using HeyeTodo.Client.Infrastructure.Auth;
+using HeyeTodo.Client.Infrastructure.Localization;
+using HeyeTodo.Client.Infrastructure.Networking;
+using HeyeTodo.Client.ViewModels;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace HeyeTodo.Client;
+
+/// <summary>
+/// Application-wide composition root. Resolves into a <see cref="IServiceProvider"/> exposed
+/// on <see cref="Services"/>; consumers locate types via constructor injection / <c>GetRequiredService</c>.
+/// </summary>
+public static class AppHost
+{
+    public static IServiceProvider Services { get; private set; } = null!;
+
+    public static void Bootstrap()
+    {
+        var settings = SettingsStore.Load();
+        var clientId = AppPaths.GetOrCreateClientId();
+
+        ApplyCulture(settings);
+
+        var sc = new ServiceCollection();
+
+        // ─── Singletons ──────────────────────────────────────
+        sc.AddSingleton(settings);
+        sc.AddSingleton(new TokenStore(AppPaths.TokenStorePath));
+        sc.AddSingleton<ClientSession>();
+
+        // ─── HttpClient + ApiClient ──────────────────────────
+        sc.AddHttpClient("api", http =>
+        {
+            http.BaseAddress = new Uri(settings.ServerBaseUrl);
+            http.Timeout = TimeSpan.FromSeconds(30);
+        });
+        sc.AddSingleton<ApiClient>(sp =>
+        {
+            var factory = sp.GetRequiredService<IHttpClientFactory>();
+            var http = factory.CreateClient("api");
+            return new ApiClient(http, sp.GetRequiredService<TokenStore>(), clientId);
+        });
+
+        // ─── Local DB ────────────────────────────────────────
+        sc.AddDbContextFactory<LocalDbContext>(o =>
+            o.UseSqlite($"Data Source={AppPaths.LocalDbPath}"));
+
+        // ─── ViewModels ──────────────────────────────────────
+        sc.AddTransient<MainWindowViewModel>();
+        sc.AddTransient<ShellViewModel>();
+        sc.AddTransient<LoginViewModel>();
+        sc.AddTransient<RegisterViewModel>();
+        sc.AddTransient<RoleSelectionViewModel>();
+        sc.AddTransient<TaskListViewModel>();
+        sc.AddTransient<GanttViewModel>();
+        sc.AddTransient<MiniGamesHubViewModel>();
+        sc.AddTransient<SettingsViewModel>();
+
+        Services = sc.BuildServiceProvider();
+
+        // Ensure local SQLite schema exists (migrations will replace EnsureCreated in M3).
+        using var scope = Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<IDbContextFactory<LocalDbContext>>().CreateDbContext();
+        db.Database.EnsureCreated();
+    }
+
+    private static void ApplyCulture(AppSettings settings)
+    {
+        var culture = settings.Language switch
+        {
+            "zh" => new System.Globalization.CultureInfo("zh"),
+            "en" => new System.Globalization.CultureInfo("en"),
+            _    => LocalizationService.DetectSystemCulture(),
+        };
+        LocalizationService.Instance.Culture = culture;
+    }
+}
+
+/// <summary>
+/// In-memory session state (current user, active project, connection status).
+/// View models subscribe to this via <see cref="PropertyChanged"/>.
+/// </summary>
+public sealed class ClientSession : System.ComponentModel.INotifyPropertyChanged
+{
+    private bool _isAuthenticated;
+    private Guid? _userId;
+    private string? _displayName;
+
+    public bool IsAuthenticated
+    {
+        get => _isAuthenticated;
+        set { _isAuthenticated = value; OnChanged(nameof(IsAuthenticated)); }
+    }
+
+    public Guid? UserId
+    {
+        get => _userId;
+        set { _userId = value; OnChanged(nameof(UserId)); }
+    }
+
+    public string? DisplayName
+    {
+        get => _displayName;
+        set { _displayName = value; OnChanged(nameof(DisplayName)); }
+    }
+
+    public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+    private void OnChanged(string name) =>
+        PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(name));
+}

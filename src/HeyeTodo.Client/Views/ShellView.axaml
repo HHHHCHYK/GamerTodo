@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:HeyeTodo.Client.ViewModels"
+             xmlns:loc="using:HeyeTodo.Client.Infrastructure.Localization"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1100" d:DesignHeight="720"
+             x:Class="HeyeTodo.Client.Views.ShellView"
+             x:DataType="vm:ShellViewModel">
+
+    <Grid ColumnDefinitions="220,*">
+
+        <!-- Sidebar -->
+        <Border Grid.Column="0" Background="{DynamicResource SystemRegionBrush}" Padding="12">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,16">
+                    <TextBlock Text="{loc:T Key=App.Title}" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock Text="{loc:T Key=App.Tagline}" Opacity="0.6" TextWrapping="Wrap" FontSize="12"/>
+                </StackPanel>
+
+                <Button DockPanel.Dock="Bottom" Command="{Binding LogoutCommand}" HorizontalAlignment="Stretch" Margin="0,8,0,0">
+                    Logout
+                </Button>
+
+                <ListBox ItemsSource="{Binding NavItems}"
+                         SelectedItem="{Binding SelectedNav}"
+                         Background="Transparent"
+                         BorderThickness="0">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:NavItem">
+                            <StackPanel Orientation="Horizontal" Spacing="10" Height="32">
+                                <TextBlock Text="{Binding Glyph}" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding [LabelKey], Source={x:Static loc:LocalizationService.Instance}}"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+
+        <!-- Content -->
+        <ContentControl Grid.Column="1" Content="{Binding Content}" Margin="16"/>
+    </Grid>
+
+</UserControl>

@@ -1,0 +1,78 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.vscode/
+*.swp
+*.rsuser
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# JetBrains
+.idea/
+*.iml
+
+# VS
+.vs/
+*.suo
+*.user
+*.userprefs
+
+# Publish
+publish/
+*.publish.xml
+
+# EF Core migrations bundle
+*.mdf
+*.ldf
+*.ndf
+
+# Local DBs
+*.db
+*.db-journal
+*.sqlite
+*.sqlite-journal
+*.sqlite3
+*.sqlite3-journal
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets
+secrets.json
+**/appsettings.Local.json
+**/appsettings.*.Local.json
+
+# NuGet
+*.nupkg
+*.snupkg
+**/packages/*
+!**/packages/build/
+*.nuget.props
+*.nuget.targets
+
+# Rider
+.idea/
+
+# Avalonia
+*.axaml.cs.bak
+
+# Node (future mini-games)
+node_modules/
