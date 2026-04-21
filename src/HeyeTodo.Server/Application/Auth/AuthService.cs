@@ -1,10 +1,11 @@
 using HeyeTodo.Server.Application.Common;
 using HeyeTodo.Server.Domain.Entities;
 using HeyeTodo.Server.Infrastructure.Auth;
+using HeyeTodo.Server.Infrastructure.Localization;
 using HeyeTodo.Server.Infrastructure.Persistence;
 using HeyeTodo.Shared.Contracts.Auth;
-using HeyeTodo.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 
 namespace HeyeTodo.Server.Application.Auth;
@@ -22,22 +23,28 @@ public sealed class AuthService : IAuthService
     private readonly AppDbContext _db;
     private readonly ITokenService _tokens;
     private readonly JwtOptions _jwt;
+    private readonly IStringLocalizer<SharedResource> _loc;
 
-    public AuthService(AppDbContext db, ITokenService tokens, IOptions<JwtOptions> jwt)
+    public AuthService(
+        AppDbContext db,
+        ITokenService tokens,
+        IOptions<JwtOptions> jwt,
+        IStringLocalizer<SharedResource> loc)
     {
         _db = db;
         _tokens = tokens;
         _jwt = jwt.Value;
+        _loc = loc;
     }
 
     public async Task<ServiceResult<AuthResponse>> RegisterAsync(RegisterRequest req, Guid clientId, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrWhiteSpace(req.Password))
-            return ServiceResult<AuthResponse>.Fail("Email and password are required.");
+            return ServiceResult<AuthResponse>.Fail(_loc["Auth_EmailAndPasswordRequired"].Value);
 
         var normalized = req.Email.Trim().ToLowerInvariant();
         if (await _db.Users.AnyAsync(u => u.Email == normalized, ct))
-            return ServiceResult<AuthResponse>.Fail("Email already registered.");
+            return ServiceResult<AuthResponse>.Fail(_loc["Auth_EmailAlreadyRegistered"].Value);
 
         var user = new AppUser
         {
@@ -58,7 +65,7 @@ public sealed class AuthService : IAuthService
         var normalized = req.Email.Trim().ToLowerInvariant();
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == normalized, ct);
         if (user is null || !PasswordHasher.Verify(req.Password, user.PasswordHash))
-            return ServiceResult<AuthResponse>.Fail("Invalid credentials.");
+            return ServiceResult<AuthResponse>.Fail(_loc["Auth_InvalidCredentials"].Value);
 
         return await IssueAsync(user, req.ClientId, ct);
     }
@@ -66,7 +73,7 @@ public sealed class AuthService : IAuthService
     public async Task<ServiceResult<AuthResponse>> RefreshAsync(RefreshRequest req, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(req.RefreshToken))
-            return ServiceResult<AuthResponse>.Fail("Refresh token missing.");
+            return ServiceResult<AuthResponse>.Fail(_loc["Auth_RefreshInvalid"].Value);
 
         var hash = _tokens.HashRefreshSecret(req.RefreshToken);
         var existing = await _db.RefreshTokens
@@ -74,7 +81,7 @@ public sealed class AuthService : IAuthService
             .FirstOrDefaultAsync(t => t.TokenHash == hash, ct);
 
         if (existing is null || existing.RevokedAt != null || existing.ExpiresAt <= DateTimeOffset.UtcNow)
-            return ServiceResult<AuthResponse>.Fail("Refresh token invalid or expired.");
+            return ServiceResult<AuthResponse>.Fail(_loc["Auth_RefreshInvalid"].Value);
 
         existing.RevokedAt = DateTimeOffset.UtcNow;
         await _db.SaveChangesAsync(ct);

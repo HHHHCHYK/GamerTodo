@@ -1,11 +1,10 @@
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using HeyeTodo.Client.Infrastructure;
+using HeyeTodo.Client.Infrastructure.Navigation;
 using HeyeTodo.Client.Infrastructure.Networking;
 using HeyeTodo.Shared.Contracts.Auth;
 using HeyeTodo.Shared.Enums;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HeyeTodo.Client.ViewModels;
 
@@ -13,6 +12,7 @@ public sealed partial class RegisterViewModel : ViewModelBase
 {
     private readonly ApiClient _api;
     private readonly ClientSession _session;
+    private readonly INavigationService _navigation;
 
     [ObservableProperty] private string _email = string.Empty;
     [ObservableProperty] private string _password = string.Empty;
@@ -20,10 +20,11 @@ public sealed partial class RegisterViewModel : ViewModelBase
     [ObservableProperty] private string? _errorMessage;
     [ObservableProperty] private bool _isBusy;
 
-    public RegisterViewModel(ApiClient api, ClientSession session)
+    public RegisterViewModel(ApiClient api, ClientSession session, INavigationService navigation)
     {
         _api = api;
         _session = session;
+        _navigation = navigation;
     }
 
     [RelayCommand]
@@ -41,16 +42,18 @@ public sealed partial class RegisterViewModel : ViewModelBase
             _session.DisplayName = r.User.DisplayName;
 
             // New user → go to role selection (skippable).
-            var rs = AppHost.Services.GetRequiredService<RoleSelectionViewModel>();
-            MainSwitcher.Switch(rs);
+            _navigation.NavigateTo<RoleSelectionViewModel>();
         }
-        finally { IsBusy = false; }
+        finally
+        {
+            Password = string.Empty;
+            IsBusy = false;
+        }
     }
 
     [RelayCommand]
     private void BackToLogin()
     {
-        var vm = AppHost.Services.GetRequiredService<LoginViewModel>();
-        MainSwitcher.Switch(vm);
+        _navigation.NavigateTo<LoginViewModel>();
     }
 }

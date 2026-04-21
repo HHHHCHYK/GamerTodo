@@ -47,6 +47,7 @@ public sealed class ApiClient
     {
         var req = new LoginRequest(email, password, _clientId);
         using var resp = await _http.PostAsJsonAsync("/api/auth/login", req, ct);
+        password = string.Empty;
         if (!resp.IsSuccessStatusCode) return null;
         var auth = await resp.Content.ReadFromJsonAsync<AuthResponse>(ct);
         if (auth is not null) CommitTokens(auth);

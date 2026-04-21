@@ -2,14 +2,15 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HeyeTodo.Client.Infrastructure;
+using HeyeTodo.Client.Infrastructure.Navigation;
 using HeyeTodo.Shared.Enums;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HeyeTodo.Client.ViewModels;
 
 public sealed partial class RoleSelectionViewModel : ViewModelBase
 {
     private readonly AppSettings _settings;
+    private readonly INavigationService _navigation;
 
     public ObservableCollection<RoleOption> Options { get; } = new()
     {
@@ -20,9 +21,10 @@ public sealed partial class RoleSelectionViewModel : ViewModelBase
         new RoleOption(RoleType.SoundDesigner, "Roles.SoundDesigner"),
     };
 
-    public RoleSelectionViewModel(AppSettings settings)
+    public RoleSelectionViewModel(AppSettings settings, INavigationService navigation)
     {
         _settings = settings;
+        _navigation = navigation;
         // Pre-check options that are already saved.
         foreach (var o in Options)
         {
@@ -40,20 +42,14 @@ public sealed partial class RoleSelectionViewModel : ViewModelBase
         _settings.Roles = (int)combined;
         SettingsStore.Save(_settings);
 
-        GoToShell();
+        _navigation.NavigateTo<ShellViewModel>();
     }
 
     [RelayCommand]
     private void Skip()
     {
         // User skipped; roles remain None. Can be edited later from Settings.
-        GoToShell();
-    }
-
-    private static void GoToShell()
-    {
-        var shell = AppHost.Services.GetRequiredService<ShellViewModel>();
-        MainSwitcher.Switch(shell);
+        _navigation.NavigateTo<ShellViewModel>();
     }
 }
 

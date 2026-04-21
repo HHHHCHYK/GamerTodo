@@ -4,6 +4,7 @@ using HeyeTodo.Client.Data;
 using HeyeTodo.Client.Infrastructure;
 using HeyeTodo.Client.Infrastructure.Auth;
 using HeyeTodo.Client.Infrastructure.Localization;
+using HeyeTodo.Client.Infrastructure.Navigation;
 using HeyeTodo.Client.Infrastructure.Networking;
 using HeyeTodo.Client.ViewModels;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +20,7 @@ public static class AppHost
 {
     public static IServiceProvider Services { get; private set; } = null!;
 
-    public static void Bootstrap()
+    public static void BootstrapCore()
     {
         var settings = SettingsStore.Load();
         var clientId = AppPaths.GetOrCreateClientId();
@@ -32,6 +33,7 @@ public static class AppHost
         sc.AddSingleton(settings);
         sc.AddSingleton(new TokenStore(AppPaths.TokenStorePath));
         sc.AddSingleton<ClientSession>();
+        sc.AddSingleton<INavigationService, NavigationService>();
 
         // ─── HttpClient + ApiClient ──────────────────────────
         sc.AddHttpClient("api", http =>
@@ -51,7 +53,7 @@ public static class AppHost
             o.UseSqlite($"Data Source={AppPaths.LocalDbPath}"));
 
         // ─── ViewModels ──────────────────────────────────────
-        sc.AddTransient<MainWindowViewModel>();
+        sc.AddSingleton<MainWindowViewModel>();
         sc.AddTransient<ShellViewModel>();
         sc.AddTransient<LoginViewModel>();
         sc.AddTransient<RegisterViewModel>();
@@ -62,11 +64,23 @@ public static class AppHost
         sc.AddTransient<SettingsViewModel>();
 
         Services = sc.BuildServiceProvider();
+    }
 
-        // Ensure local SQLite schema exists (migrations will replace EnsureCreated in M3).
-        using var scope = Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<IDbContextFactory<LocalDbContext>>().CreateDbContext();
-        db.Database.EnsureCreated();
+    public static async Task WarmupAsync(SplashViewModel splash, CancellationToken ct = default)
+    {
+        splash.Status = LocalizationService.Instance["Splash.LoadingSettings"];
+        await Task.Yield();
+
+        splash.Status = LocalizationService.Instance["Splash.InitializingDatabase"];
+
+        await Task.Run(() =>
+        {
+            using var scope = Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<IDbContextFactory<LocalDbContext>>().CreateDbContext();
+            db.Database.EnsureCreated();
+        }, ct);
+
+        splash.Status = LocalizationService.Instance["Splash.Ready"];
     }
 
     private static void ApplyCulture(AppSettings settings)

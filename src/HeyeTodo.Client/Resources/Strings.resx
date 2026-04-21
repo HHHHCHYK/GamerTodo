@@ -56,4 +56,9 @@
   <data name="Common.Continue" xml:space="preserve"><value>Continue</value></data>
   <data name="Common.Save" xml:space="preserve"><value>Save</value></data>
   <data name="Common.Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Common.Retry" xml:space="preserve"><value>Retry</value></data>
+  <data name="Common.Quit" xml:space="preserve"><value>Quit</value></data>
+  <data name="Splash.LoadingSettings" xml:space="preserve"><value>Loading settings...</value></data>
+  <data name="Splash.InitializingDatabase" xml:space="preserve"><value>Initializing local database...</value></data>
+  <data name="Splash.Ready" xml:space="preserve"><value>Ready.</value></data>
 </root>

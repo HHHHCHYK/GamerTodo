@@ -1,0 +1,27 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:HeyeTodo.Client.ViewModels"
+        xmlns:loc="using:HeyeTodo.Client.Infrastructure.Localization"
+        x:Class="HeyeTodo.Client.Views.SplashWindow"
+        x:DataType="vm:SplashViewModel"
+        Width="420" Height="240"
+        CanResize="False"
+        WindowDecorations="BorderOnly"
+        Title="{loc:T Key=App.Title}">
+
+    <Border Padding="24">
+        <StackPanel VerticalAlignment="Center" Spacing="12">
+            <TextBlock Text="{loc:T Key=App.Title}" FontSize="26" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+            <TextBlock Text="{loc:T Key=App.Tagline}" HorizontalAlignment="Center" Opacity="0.65" TextWrapping="Wrap" TextAlignment="Center"/>
+
+            <ProgressBar IsIndeterminate="True" IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNull}}"/>
+
+            <TextBlock Text="{Binding Status}" HorizontalAlignment="Center" Opacity="0.8"/>
+            <TextBlock Text="{Binding ErrorMessage}"
+                       IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"
+                       TextWrapping="Wrap"
+                       Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}"/>
+        </StackPanel>
+    </Border>
+
+</Window>

@@ -48,10 +48,18 @@ HeyeTodo/
 
 ```bash
 dotnet tool restore
+dotnet user-secrets --project src/HeyeTodo.Server set "Jwt:SigningKey" "<your-random-32+-byte-key>"
 cd deploy
 docker compose up -d postgres
 cd ../src/HeyeTodo.Server
 dotnet run
+```
+
+PowerShell example for a development signing key:
+
+```powershell
+$key = [Convert]::ToBase64String((1..48 | ForEach-Object { [byte](Get-Random -Max 256) }))
+dotnet user-secrets --project src/HeyeTodo.Server set "Jwt:SigningKey" $key
 ```
 
 To apply database migrations manually:
@@ -59,6 +67,8 @@ To apply database migrations manually:
 ```bash
 dotnet dotnet-ef database update --project src/HeyeTodo.Server/HeyeTodo.Server.csproj --startup-project src/HeyeTodo.Server/HeyeTodo.Server.csproj
 ```
+
+Open `http://localhost:5254/scalar/v1` for an interactive API reference in Development.
 
 ### Run client
 
@@ -84,6 +94,7 @@ dotnet dotnet-ef database update --project ../src/HeyeTodo.Server/HeyeTodo.Serve
 ```
 
 4. Point the desktop client at `http://localhost:8080` (or your reverse-proxied domain).
+5. Ensure `Cors__AllowedOrigins__0` contains the browser/client origin that will reach the server, otherwise browser requests and SignalR handshakes will be rejected.
 
 ## License
 

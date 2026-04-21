@@ -1,6 +1,30 @@
 @HeyeTodo.Server_HostAddress = http://localhost:5254
 
-GET {{HeyeTodo.Server_HostAddress}}/weatherforecast/
+GET {{HeyeTodo.Server_HostAddress}}/
 Accept: application/json
+
+###
+
+POST {{HeyeTodo.Server_HostAddress}}/api/auth/login
+Content-Type: application/json
+Accept-Language: en
+
+{
+  "email": "nope@example.com",
+  "password": "wrong",
+  "clientId": "00000000-0000-0000-0000-000000000000"
+}
+
+###
+
+POST {{HeyeTodo.Server_HostAddress}}/api/auth/login
+Content-Type: application/json
+Accept-Language: zh
+
+{
+  "email": "nope@example.com",
+  "password": "wrong",
+  "clientId": "00000000-0000-0000-0000-000000000000"
+}
 
 ###

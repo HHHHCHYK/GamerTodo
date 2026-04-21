@@ -56,4 +56,9 @@
   <data name="Common.Continue" xml:space="preserve"><value>继续</value></data>
   <data name="Common.Save" xml:space="preserve"><value>保存</value></data>
   <data name="Common.Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="Common.Retry" xml:space="preserve"><value>重试</value></data>
+  <data name="Common.Quit" xml:space="preserve"><value>退出</value></data>
+  <data name="Splash.LoadingSettings" xml:space="preserve"><value>正在加载设置...</value></data>
+  <data name="Splash.InitializingDatabase" xml:space="preserve"><value>正在初始化本地数据库...</value></data>
+  <data name="Splash.Ready" xml:space="preserve"><value>准备完成。</value></data>
 </root>

@@ -29,7 +29,7 @@
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:NavItem">
                             <StackPanel Orientation="Horizontal" Spacing="10" Height="32">
-                                <TextBlock Text="{Binding Glyph}" FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" VerticalAlignment="Center"/>
+                                <PathIcon Data="{Binding IconPathData}" Width="18" Height="18" VerticalAlignment="Center"/>
                                 <TextBlock Text="{Binding [LabelKey], Source={x:Static loc:LocalizationService.Instance}}"
                                            VerticalAlignment="Center"/>
                             </StackPanel>

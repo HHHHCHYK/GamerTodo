@@ -14,16 +14,39 @@ public partial class App : Application
         AvaloniaXamlLoader.Load(this);
     }
 
-    public override void OnFrameworkInitializationCompleted()
+    public override async void OnFrameworkInitializationCompleted()
     {
-        AppHost.Bootstrap();
+        AppHost.BootstrapCore();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            desktop.MainWindow = new MainWindow
+            var splash = new SplashWindow
             {
-                DataContext = AppHost.Services.GetRequiredService<MainWindowViewModel>(),
+                DataContext = AppHost.Services.GetRequiredService<SplashViewModel>(),
             };
+
+            desktop.MainWindow = splash;
+            splash.Show();
+
+            try
+            {
+                var splashVm = (SplashViewModel)splash.DataContext!;
+                await AppHost.WarmupAsync(splashVm);
+
+                var mainWindow = new MainWindow
+                {
+                    DataContext = AppHost.Services.GetRequiredService<MainWindowViewModel>(),
+                };
+
+                desktop.MainWindow = mainWindow;
+                mainWindow.Show();
+                splash.Close();
+            }
+            catch (Exception ex)
+            {
+                var splashVm = (SplashViewModel)splash.DataContext!;
+                splashVm.ErrorMessage = ex.Message;
+            }
         }
 
         base.OnFrameworkInitializationCompleted();

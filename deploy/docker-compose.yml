@@ -30,11 +30,15 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__Default: Host=postgres;Port=5432;Database=heyetodo;Username=heyetodo;Password=heyetodo
+      # MUST be replaced with at least 32 random bytes before deploying.
       Jwt__Issuer: HeyeTodo
       Jwt__Audience: HeyeTodo.Client
       Jwt__SigningKey: change-this-in-production-please-32bytes-minimum
       Jwt__AccessTokenMinutes: 30
       Jwt__RefreshTokenDays: 30
+      # Example browser origins for a self-hosted deployment:
+      # Cors__AllowedOrigins__0: https://heyetodo.example.com
+      # Cors__AllowedOrigins__1: https://app.heyetodo.example.com
     ports:
       - "8080:8080"
 

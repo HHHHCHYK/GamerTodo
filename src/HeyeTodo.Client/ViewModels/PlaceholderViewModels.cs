@@ -23,3 +23,12 @@ public sealed class MiniGamesHubViewModel : ViewModelBase
 public sealed class SettingsViewModel : ViewModelBase
 {
 }
+
+public sealed partial class SplashViewModel : ViewModelBase
+{
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+    private string _status = string.Empty;
+
+    [CommunityToolkit.Mvvm.ComponentModel.ObservableProperty]
+    private string? _errorMessage;
+}

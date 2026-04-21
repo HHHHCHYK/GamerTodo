@@ -6,16 +6,24 @@ using HeyeTodo.Server.Infrastructure.Localization;
 using HeyeTodo.Server.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddUserSecrets<Program>(optional: true);
 
 // ─── Configuration ────────────────────────────────────────────
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions
 {
-    SigningKey = "dev-insecure-signing-key-please-change-me-32bytes!!"
+    SigningKey = "REPLACE-ME-VIA-USER-SECRETS"
 };
+
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? Array.Empty<string>();
 
 // ─── EF Core / Postgres ───────────────────────────────────────
 var cs = builder.Configuration.GetConnectionString("Default")
@@ -68,12 +76,31 @@ builder.Services.AddHeyeLocalization();
 builder.Services.AddSignalR().AddMessagePackProtocol();
 
 builder.Services.AddCors(o => o.AddDefaultPolicy(p => p
+    .WithOrigins(allowedOrigins)
     .AllowAnyHeader()
     .AllowAnyMethod()
-    .SetIsOriginAllowed(_ => true)
     .AllowCredentials()));
 
 var app = builder.Build();
+
+if (string.IsNullOrWhiteSpace(jwtOptions.SigningKey)
+    || jwtOptions.SigningKey.StartsWith("REPLACE-ME", StringComparison.Ordinal)
+    || Encoding.UTF8.GetByteCount(jwtOptions.SigningKey) < 32)
+{
+    if (app.Environment.IsDevelopment())
+    {
+        app.Logger.LogWarning("Jwt:SigningKey is not configured securely. Use 'dotnet user-secrets' during development.");
+    }
+    else
+    {
+        throw new InvalidOperationException("Jwt:SigningKey must be configured via user-secrets or environment variables before starting in Production.");
+    }
+}
+
+if (allowedOrigins.Length == 0)
+{
+    app.Logger.LogWarning("CORS has no allowed origins configured. All browser cross-origin requests will be rejected.");
+}
 
 // Apply pending EF Core migrations at startup so self-hosted instances come up with a
 // matching schema without a separate deploy step. This is acceptable for MVP / small-team use.
@@ -86,6 +113,11 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference(options =>
+    {
+        options.WithTitle("HeyeTodo API");
+        options.WithTheme(ScalarTheme.BluePlanet);
+    });
 }
 
 app.UseHeyeLocalization();
