@@ -30,7 +30,7 @@
                         <DataTemplate x:DataType="vm:NavItem">
                             <StackPanel Orientation="Horizontal" Spacing="10" Height="32">
                                 <PathIcon Data="{Binding IconPathData}" Width="18" Height="18" VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding [LabelKey], Source={x:Static loc:LocalizationService.Instance}}"
+                                <TextBlock Text="{Binding Label}"
                                            VerticalAlignment="Center"/>
                             </StackPanel>
                         </DataTemplate>

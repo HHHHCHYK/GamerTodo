@@ -2,12 +2,67 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:HeyeTodo.Client.ViewModels"
              xmlns:loc="using:HeyeTodo.Client.Infrastructure.Localization"
-             x:Class="HeyeTodo.Client.Views.SettingsView"
-             x:DataType="vm:SettingsViewModel">
+              x:Class="HeyeTodo.Client.Views.SettingsView"
+              x:DataType="vm:SettingsViewModel">
 
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
-        <TextBlock Text="{loc:T Key=Nav.Settings}" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-        <TextBlock Opacity="0.5" Text="— M1 placeholder —" HorizontalAlignment="Center"/>
-    </StackPanel>
+    <ScrollViewer>
+        <Border MaxWidth="720" Margin="0,0,24,0" Padding="24">
+            <StackPanel Spacing="20">
+                <TextBlock Text="{loc:T Key=Nav.Settings}" FontSize="24" FontWeight="SemiBold"/>
+
+                <StackPanel Spacing="8">
+                    <TextBlock Text="{loc:T Key=Settings.Language}" FontWeight="SemiBold"/>
+                    <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:LanguageOption">
+                                <TextBlock Text="{Binding Label}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Spacing="8">
+                    <TextBlock Text="{loc:T Key=Settings.ServerUrl}" FontWeight="SemiBold"/>
+                    <TextBox Text="{Binding ServerBaseUrl}" PlaceholderText="http://localhost:5254/"/>
+                </StackPanel>
+
+                <StackPanel Spacing="8">
+                    <TextBlock Text="{loc:T Key=Settings.Roles}" FontWeight="SemiBold"/>
+                    <ItemsControl ItemsSource="{Binding RoleOptions}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:RoleOption">
+                                <CheckBox Margin="0,4,0,0"
+                                          IsChecked="{Binding IsSelected}"
+                                          Content="{Binding Label}"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <StackPanel Spacing="8">
+                    <TextBlock Text="{loc:T Key=Settings.PlanningMode}" FontWeight="SemiBold"/>
+                    <ComboBox ItemsSource="{Binding PlanningModes}" SelectedItem="{Binding SelectedPlanningMode}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:PlanningModeOption">
+                                <TextBlock Text="{Binding Label}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+
+                <TextBlock Text="{Binding StatusMessage}" Foreground="DarkGreen"
+                           IsVisible="{Binding StatusMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}"
+                           IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Button Content="{loc:T Key=Settings.SaveChanges}" Command="{Binding SaveCommand}" Classes="accent"
+                            IsEnabled="{Binding !IsBusy}"/>
+                    <Button Content="{loc:T Key=Settings.Logout}" Command="{Binding LogoutCommand}"
+                            IsEnabled="{Binding !IsBusy}"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </ScrollViewer>
 
 </UserControl>

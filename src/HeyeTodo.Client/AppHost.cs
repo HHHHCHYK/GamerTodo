@@ -1,12 +1,17 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Net.Http;
+using HeyeTodo.Client.Application.Tasks;
 using HeyeTodo.Client.Data;
+using HeyeTodo.Client.Data.Repositories;
 using HeyeTodo.Client.Infrastructure;
 using HeyeTodo.Client.Infrastructure.Auth;
 using HeyeTodo.Client.Infrastructure.Localization;
 using HeyeTodo.Client.Infrastructure.Navigation;
 using HeyeTodo.Client.Infrastructure.Networking;
 using HeyeTodo.Client.ViewModels;
+using HeyeTodo.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -25,12 +30,11 @@ public static class AppHost
         var settings = SettingsStore.Load();
         var clientId = AppPaths.GetOrCreateClientId();
 
-        ApplyCulture(settings);
-
         var sc = new ServiceCollection();
 
         // ─── Singletons ──────────────────────────────────────
         sc.AddSingleton(settings);
+        sc.AddSingleton<ISettingsService, SettingsService>();
         sc.AddSingleton(new TokenStore(AppPaths.TokenStorePath));
         sc.AddSingleton<ClientSession>();
         sc.AddSingleton<INavigationService, NavigationService>();
@@ -38,19 +42,23 @@ public static class AppHost
         // ─── HttpClient + ApiClient ──────────────────────────
         sc.AddHttpClient("api", http =>
         {
-            http.BaseAddress = new Uri(settings.ServerBaseUrl);
             http.Timeout = TimeSpan.FromSeconds(30);
         });
         sc.AddSingleton<ApiClient>(sp =>
         {
             var factory = sp.GetRequiredService<IHttpClientFactory>();
             var http = factory.CreateClient("api");
-            return new ApiClient(http, sp.GetRequiredService<TokenStore>(), clientId);
+            return new ApiClient(http, sp.GetRequiredService<TokenStore>(), sp.GetRequiredService<ISettingsService>(), clientId);
         });
+        sc.AddTransient<ProjectApiClient>();
+        sc.AddTransient<TaskApiClient>();
 
         // ─── Local DB ────────────────────────────────────────
         sc.AddDbContextFactory<LocalDbContext>(o =>
             o.UseSqlite($"Data Source={AppPaths.LocalDbPath}"));
+        sc.AddTransient<IProjectRepository, LocalProjectRepository>();
+        sc.AddTransient<ITaskRepository, LocalTaskRepository>();
+        sc.AddTransient<ITaskWorkspaceService, TaskWorkspaceService>();
 
         // ─── ViewModels ──────────────────────────────────────
         sc.AddSingleton<MainWindowViewModel>();
@@ -62,6 +70,7 @@ public static class AppHost
         sc.AddTransient<GanttViewModel>();
         sc.AddTransient<MiniGamesHubViewModel>();
         sc.AddTransient<SettingsViewModel>();
+        sc.AddTransient<SplashViewModel>();
 
         Services = sc.BuildServiceProvider();
     }
@@ -82,17 +91,6 @@ public static class AppHost
 
         splash.Status = LocalizationService.Instance["Splash.Ready"];
     }
-
-    private static void ApplyCulture(AppSettings settings)
-    {
-        var culture = settings.Language switch
-        {
-            "zh" => new System.Globalization.CultureInfo("zh"),
-            "en" => new System.Globalization.CultureInfo("en"),
-            _    => LocalizationService.DetectSystemCulture(),
-        };
-        LocalizationService.Instance.Culture = culture;
-    }
 }
 
 /// <summary>
@@ -104,6 +102,8 @@ public sealed class ClientSession : System.ComponentModel.INotifyPropertyChanged
     private bool _isAuthenticated;
     private Guid? _userId;
     private string? _displayName;
+    private RoleType _roles;
+    private RoleType? _activeRoleContext;
 
     public bool IsAuthenticated
     {
@@ -121,6 +121,27 @@ public sealed class ClientSession : System.ComponentModel.INotifyPropertyChanged
     {
         get => _displayName;
         set { _displayName = value; OnChanged(nameof(DisplayName)); }
+    }
+
+    public RoleType Roles
+    {
+        get => _roles;
+        set { _roles = value; OnChanged(nameof(Roles)); }
+    }
+
+    public RoleType? ActiveRoleContext
+    {
+        get => _activeRoleContext;
+        set { _activeRoleContext = value; OnChanged(nameof(ActiveRoleContext)); }
+    }
+
+    public void Reset()
+    {
+        IsAuthenticated = false;
+        UserId = null;
+        DisplayName = null;
+        Roles = RoleType.None;
+        ActiveRoleContext = null;
     }
 
     public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;

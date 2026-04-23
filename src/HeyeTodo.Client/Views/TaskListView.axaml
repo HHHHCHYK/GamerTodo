@@ -2,12 +2,138 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:HeyeTodo.Client.ViewModels"
              xmlns:loc="using:HeyeTodo.Client.Infrastructure.Localization"
-             x:Class="HeyeTodo.Client.Views.TaskListView"
-             x:DataType="vm:TaskListViewModel">
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+              x:Class="HeyeTodo.Client.Views.TaskListView"
+              x:DataType="vm:TaskListViewModel">
 
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
-        <TextBlock Text="{loc:T Key=Nav.Tasks}" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-        <TextBlock Opacity="0.5" Text="— M2 placeholder —" HorizontalAlignment="Center"/>
-    </StackPanel>
+    <Grid RowDefinitions="Auto,*" ColumnDefinitions="2*,1.1*" RowSpacing="16" ColumnSpacing="16">
+        <Border Grid.Row="0" Grid.ColumnSpan="2" Padding="16" Background="{DynamicResource SystemRegionBrush}">
+            <StackPanel Spacing="12">
+                <TextBlock Text="{loc:T Key=Nav.Tasks}" FontSize="24" FontWeight="SemiBold"/>
+
+                <Grid ColumnDefinitions="2*,Auto,2*,Auto,Auto,Auto" ColumnSpacing="12">
+                    <ComboBox Grid.Column="0" ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ProjectItemViewModel">
+                                <TextBlock Text="{Binding Name}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button Grid.Column="1" Content="{loc:T Key=Tasks.Refresh}" Command="{Binding RefreshCommand}"/>
+                    <TextBox Grid.Column="2" Text="{Binding SearchText}" PlaceholderText="{loc:T Key=Tasks.Search}"/>
+                    <ComboBox Grid.Column="3" ItemsSource="{Binding StatusFilters}" SelectedItem="{Binding SelectedStatusFilter}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:TaskStatusOption">
+                                <TextBlock Text="{Binding Label}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <ComboBox Grid.Column="4" ItemsSource="{Binding SortOptions}" SelectedItem="{Binding SelectedSort}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:TaskSortOption">
+                                <TextBlock Text="{Binding Label}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button Grid.Column="5" Content="{loc:T Key=Tasks.CreateTask}" Command="{Binding NewTaskCommand}"
+                            IsEnabled="{Binding HasSelectedProject}" Classes="accent"/>
+                </Grid>
+
+                <Grid ColumnDefinitions="2*,2*,Auto,Auto,Auto" ColumnSpacing="12">
+                    <TextBox Grid.Column="0" Text="{Binding ProjectName}" PlaceholderText="{loc:T Key=Projects.Name}"/>
+                    <TextBox Grid.Column="1" Text="{Binding ProjectDescription}" PlaceholderText="{loc:T Key=Projects.Description}"/>
+                    <CheckBox Grid.Column="2" Content="{loc:T Key=Tasks.IncludeCompleted}" IsChecked="{Binding IncludeCompleted}" VerticalAlignment="Center"/>
+                    <Button Grid.Column="3" Content="{loc:T Key=Tasks.CreateProject}" Command="{Binding CreateProjectCommand}"/>
+                    <Button Grid.Column="4" Content="{loc:T Key=Tasks.SaveProject}" Command="{Binding SaveProjectCommand}" IsEnabled="{Binding HasSelectedProject}"/>
+                </Grid>
+
+                <Button Content="{loc:T Key=Tasks.DeleteProject}" Command="{Binding DeleteProjectCommand}" HorizontalAlignment="Right"
+                        IsEnabled="{Binding HasSelectedProject}"/>
+
+                <TextBlock Text="{Binding StatusMessage}" Foreground="DarkGreen"
+                           IsVisible="{Binding StatusMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}"
+                           IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Grid.Column="0" Padding="12" Background="{DynamicResource SystemRegionBrush}">
+            <Grid RowDefinitions="Auto,*">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="{loc:T Key=Tasks.List}" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock Text="{loc:T Key=Tasks.NoProject}" Opacity="0.7" IsVisible="{Binding ShowNoProjectMessage}"/>
+                    <TextBlock Text="{loc:T Key=Tasks.Empty}" Opacity="0.7" IsVisible="{Binding ShowEmptyTasksMessage}"/>
+                </StackPanel>
+
+                <ListBox Grid.Row="1" Margin="0,12,0,0" ItemsSource="{Binding Tasks}" SelectedItem="{Binding SelectedTask}"
+                         IsVisible="{Binding ShowTaskList}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:TaskItemViewModel">
+                            <Border Padding="12" Margin="0,0,0,8" Background="Transparent">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="12">
+                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                                    <Button Grid.Column="1" Content="{loc:T Key=Tasks.NextStatus}"
+                                            Command="{Binding $parent[UserControl].DataContext.AdvanceTaskStatusCommand}" CommandParameter="{Binding}"/>
+
+                                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="{Binding StatusLabel}" Opacity="0.8"/>
+                                        <TextBlock Text="{Binding PriorityLabel}" Opacity="0.8"/>
+                                        <TextBlock Text="{Binding ScheduleLabel}" Opacity="0.6"/>
+                                    </StackPanel>
+
+                                    <TextBlock Grid.Row="2" Text="{Binding Description}" Opacity="0.7" TextWrapping="Wrap"
+                                               IsVisible="{Binding Description, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1" Grid.Column="1" Padding="16" Background="{DynamicResource SystemRegionBrush}">
+            <StackPanel Spacing="12">
+                <TextBlock Text="{loc:T Key=Tasks.Editor}" FontSize="18" FontWeight="SemiBold"/>
+                <TextBlock Text="{loc:T Key=Tasks.EditorEmpty}" Opacity="0.7" IsVisible="{Binding !ShowEditorForm}"/>
+
+                <StackPanel Spacing="8" IsVisible="{Binding ShowEditorForm}">
+                    <TextBox Text="{Binding EditTitle}" PlaceholderText="{loc:T Key=Tasks.Editor.Title}"/>
+                    <TextBox Text="{Binding EditDescription}" PlaceholderText="{loc:T Key=Tasks.Editor.Description}" AcceptsReturn="True" MinHeight="80"/>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <ComboBox Grid.Column="0" ItemsSource="{Binding EditorStatuses}" SelectedItem="{Binding EditStatus}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:TaskStatusOption">
+                                    <TextBlock Text="{Binding Label}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding EditorPriorities}" SelectedItem="{Binding EditPriority}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="vm:TaskPriorityOption">
+                                    <TextBlock Text="{Binding Label}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                        <TextBox Grid.Column="0" Text="{Binding EditStartDate}" PlaceholderText="{loc:T Key=Tasks.Editor.StartDate}"/>
+                        <TextBox Grid.Column="1" Text="{Binding EditEndDate}" PlaceholderText="{loc:T Key=Tasks.Editor.EndDate}"/>
+                    </Grid>
+
+                    <TextBox Text="{Binding EditEstimatedHours}" PlaceholderText="{loc:T Key=Tasks.Editor.EstimatedHours}"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12">
+                        <Button Content="{loc:T Key=Common.Cancel}" Command="{Binding CancelEditCommand}"/>
+                        <Button Content="{loc:T Key=Tasks.Delete}" Command="{Binding DeleteTaskCommand}" IsEnabled="{Binding HasSelectedTask}"/>
+                        <Button Content="{loc:T Key=Common.Save}" Command="{Binding SaveTaskCommand}" Classes="accent"/>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
 
 </UserControl>

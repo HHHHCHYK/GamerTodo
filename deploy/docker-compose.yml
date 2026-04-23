@@ -8,9 +8,9 @@ services:
       POSTGRES_USER: heyetodo
       POSTGRES_PASSWORD: heyetodo
     ports:
-      - "5432:5432"
+      - "55432:5432"
     volumes:
-      - heyetodo-postgres-data:/var/lib/postgresql/data
+      - heyetodo-postgres-dev-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U heyetodo -d heyetodo"]
       interval: 10s
@@ -43,4 +43,4 @@ services:
       - "8080:8080"
 
 volumes:
-  heyetodo-postgres-data:
+  heyetodo-postgres-dev-data:

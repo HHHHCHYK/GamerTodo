@@ -40,6 +40,8 @@ public sealed partial class RegisterViewModel : ViewModelBase
             _session.IsAuthenticated = true;
             _session.UserId = r.User.Id;
             _session.DisplayName = r.User.DisplayName;
+            _session.Roles = r.User.Roles;
+            _session.ActiveRoleContext = r.User.ActiveRoleContext;
 
             // New user → go to role selection (skippable).
             _navigation.NavigateTo<RoleSelectionViewModel>();

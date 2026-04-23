@@ -58,7 +58,85 @@
   <data name="Common.Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="Common.Retry" xml:space="preserve"><value>Retry</value></data>
   <data name="Common.Quit" xml:space="preserve"><value>Quit</value></data>
+  <data name="Common.Logout" xml:space="preserve"><value>Logout</value></data>
   <data name="Splash.LoadingSettings" xml:space="preserve"><value>Loading settings...</value></data>
   <data name="Splash.InitializingDatabase" xml:space="preserve"><value>Initializing local database...</value></data>
   <data name="Splash.Ready" xml:space="preserve"><value>Ready.</value></data>
+  <data name="RoleSelection.SaveFailed" xml:space="preserve"><value>Could not save roles. Check the server connection and try again.</value></data>
+  <data name="Settings.Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings.Language.Auto" xml:space="preserve"><value>Follow system</value></data>
+  <data name="Settings.Language.English" xml:space="preserve"><value>English</value></data>
+  <data name="Settings.Language.Chinese" xml:space="preserve"><value>Chinese</value></data>
+  <data name="Settings.ServerUrl" xml:space="preserve"><value>Server base URL</value></data>
+  <data name="Settings.ServerUrlInvalid" xml:space="preserve"><value>Enter a valid server base URL.</value></data>
+  <data name="Settings.Roles" xml:space="preserve"><value>Roles</value></data>
+  <data name="Settings.PlanningMode" xml:space="preserve"><value>Planning mode</value></data>
+  <data name="Settings.PlanningMode.Rule" xml:space="preserve"><value>Rules only</value></data>
+  <data name="Settings.PlanningMode.Server" xml:space="preserve"><value>Server-managed AI</value></data>
+  <data name="Settings.PlanningMode.Client" xml:space="preserve"><value>Client API key</value></data>
+  <data name="Settings.SaveChanges" xml:space="preserve"><value>Save changes</value></data>
+  <data name="Settings.SaveSuccess" xml:space="preserve"><value>Settings saved.</value></data>
+  <data name="Settings.SaveFailed" xml:space="preserve"><value>Could not save settings. Check the server connection and try again.</value></data>
+  <data name="Settings.SavePartialFailed" xml:space="preserve"><value>Local settings were saved, but role sync failed. Check the server connection and try again.</value></data>
+  <data name="Settings.Logout" xml:space="preserve"><value>Logout</value></data>
+  <data name="Projects.Name" xml:space="preserve"><value>Project name</value></data>
+  <data name="Projects.Description" xml:space="preserve"><value>Project description</value></data>
+  <data name="Tasks.List" xml:space="preserve"><value>Tasks</value></data>
+  <data name="Tasks.Search" xml:space="preserve"><value>Search tasks</value></data>
+  <data name="Tasks.Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="Tasks.CreateProject" xml:space="preserve"><value>Create project</value></data>
+  <data name="Tasks.SaveProject" xml:space="preserve"><value>Save project</value></data>
+  <data name="Tasks.DeleteProject" xml:space="preserve"><value>Delete project</value></data>
+  <data name="Tasks.CreateTask" xml:space="preserve"><value>New task</value></data>
+  <data name="Tasks.Delete" xml:space="preserve"><value>Delete task</value></data>
+  <data name="Tasks.NextStatus" xml:space="preserve"><value>Next status</value></data>
+  <data name="Tasks.Empty" xml:space="preserve"><value>No tasks in this project yet.</value></data>
+  <data name="Tasks.NoProject" xml:space="preserve"><value>Create or select a project to start tracking tasks.</value></data>
+  <data name="Tasks.IncludeCompleted" xml:space="preserve"><value>Include done/cancelled</value></data>
+  <data name="Tasks.Editor" xml:space="preserve"><value>Task editor</value></data>
+  <data name="Tasks.EditorEmpty" xml:space="preserve"><value>Select a task or create a new one to edit it here.</value></data>
+  <data name="Tasks.Editor.Title" xml:space="preserve"><value>Task title</value></data>
+  <data name="Tasks.Editor.Description" xml:space="preserve"><value>Description</value></data>
+  <data name="Tasks.Editor.StartDate" xml:space="preserve"><value>Start date (yyyy-MM-dd)</value></data>
+  <data name="Tasks.Editor.EndDate" xml:space="preserve"><value>End date (yyyy-MM-dd)</value></data>
+  <data name="Tasks.Editor.EstimatedHours" xml:space="preserve"><value>Estimated hours</value></data>
+  <data name="Tasks.ProjectCreated" xml:space="preserve"><value>Project created.</value></data>
+  <data name="Tasks.ProjectSaved" xml:space="preserve"><value>Project updated.</value></data>
+  <data name="Tasks.ProjectDeleted" xml:space="preserve"><value>Project deleted.</value></data>
+  <data name="Tasks.TaskCreated" xml:space="preserve"><value>Task created.</value></data>
+  <data name="Tasks.TaskSaved" xml:space="preserve"><value>Task updated.</value></data>
+  <data name="Tasks.TaskDeleted" xml:space="preserve"><value>Task deleted.</value></data>
+  <data name="Tasks.Schedule.None" xml:space="preserve"><value>No schedule</value></data>
+  <data name="Tasks.Filter.Status.All" xml:space="preserve"><value>All statuses</value></data>
+  <data name="Tasks.Filter.Priority.All" xml:space="preserve"><value>All priorities</value></data>
+  <data name="Tasks.Sort.UpdatedDesc" xml:space="preserve"><value>Recently updated</value></data>
+  <data name="Tasks.Sort.TitleAsc" xml:space="preserve"><value>Title A-Z</value></data>
+  <data name="Tasks.Sort.PriorityDesc" xml:space="preserve"><value>Priority high to low</value></data>
+  <data name="Tasks.Sort.StatusAsc" xml:space="preserve"><value>Status</value></data>
+  <data name="Tasks.Status.Backlog" xml:space="preserve"><value>Backlog</value></data>
+  <data name="Tasks.Status.Todo" xml:space="preserve"><value>Todo</value></data>
+  <data name="Tasks.Status.InProgress" xml:space="preserve"><value>In progress</value></data>
+  <data name="Tasks.Status.Blocked" xml:space="preserve"><value>Blocked</value></data>
+  <data name="Tasks.Status.Review" xml:space="preserve"><value>Review</value></data>
+  <data name="Tasks.Status.Done" xml:space="preserve"><value>Done</value></data>
+  <data name="Tasks.Status.Cancelled" xml:space="preserve"><value>Cancelled</value></data>
+  <data name="Tasks.Priority.Low" xml:space="preserve"><value>Low</value></data>
+  <data name="Tasks.Priority.Normal" xml:space="preserve"><value>Normal</value></data>
+  <data name="Tasks.Priority.High" xml:space="preserve"><value>High</value></data>
+  <data name="Tasks.Priority.Critical" xml:space="preserve"><value>Critical</value></data>
+  <data name="Tasks.Error.NoSession" xml:space="preserve"><value>Current user session is unavailable.</value></data>
+  <data name="Tasks.Error.LoadFailed" xml:space="preserve"><value>Could not load projects or tasks.</value></data>
+  <data name="Tasks.Error.ProjectNameRequired" xml:space="preserve"><value>Project name is required.</value></data>
+  <data name="Tasks.Error.ProjectCreateFailed" xml:space="preserve"><value>Could not create project.</value></data>
+  <data name="Tasks.Error.ProjectUpdateFailed" xml:space="preserve"><value>Could not update project.</value></data>
+  <data name="Tasks.Error.ProjectDeleteFailed" xml:space="preserve"><value>Could not delete project.</value></data>
+  <data name="Tasks.Error.NoProjectSelected" xml:space="preserve"><value>Select a project first.</value></data>
+  <data name="Tasks.Error.TitleRequired" xml:space="preserve"><value>Task title is required.</value></data>
+  <data name="Tasks.Error.TaskSaveFailed" xml:space="preserve"><value>Could not save task.</value></data>
+  <data name="Tasks.Error.TaskDeleteFailed" xml:space="preserve"><value>Could not delete task.</value></data>
+  <data name="Tasks.Error.StatusUpdateFailed" xml:space="preserve"><value>Could not update task status.</value></data>
+  <data name="Tasks.Error.InvalidStartDate" xml:space="preserve"><value>Enter a valid start date in yyyy-MM-dd format.</value></data>
+  <data name="Tasks.Error.InvalidEndDate" xml:space="preserve"><value>Enter a valid end date in yyyy-MM-dd format.</value></data>
+  <data name="Tasks.Error.InvalidEstimate" xml:space="preserve"><value>Enter a valid estimated hours value.</value></data>
+  <data name="Tasks.Warning.LocalOnly" xml:space="preserve"><value>Saved locally. Remote sync is pending.</value></data>
 </root>

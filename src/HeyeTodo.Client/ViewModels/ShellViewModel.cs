@@ -1,8 +1,10 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HeyeTodo.Client.Infrastructure;
+using HeyeTodo.Client.Infrastructure.Localization;
 using HeyeTodo.Client.Infrastructure.Navigation;
 using HeyeTodo.Client.Infrastructure.Networking;
 using Microsoft.Extensions.DependencyInjection;
@@ -56,12 +58,15 @@ public sealed partial class ShellViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void Logout()
+    private async Task Logout()
     {
-        _api.Logout();
-        _session.IsAuthenticated = false;
+        await _api.LogoutAsync();
+        _session.Reset();
         _navigation.NavigateTo<LoginViewModel>();
     }
 }
 
-public sealed record NavItem(string LabelKey, string IconPathData, Type ViewModelType);
+public sealed record NavItem(string LabelKey, string IconPathData, Type ViewModelType)
+{
+    public string Label => LocalizationService.Instance[LabelKey];
+}

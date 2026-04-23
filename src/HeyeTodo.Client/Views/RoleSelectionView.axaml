@@ -17,7 +17,7 @@
                     <DataTemplate x:DataType="vm:RoleOption">
                         <CheckBox Margin="0,4"
                                   IsChecked="{Binding IsSelected}"
-                                  Content="{Binding [LabelKey], Source={x:Static loc:LocalizationService.Instance}}"/>
+                                  Content="{Binding Label}"/>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HeyeTodo.Client.Infrastructure.Navigation;
 using HeyeTodo.Client.Infrastructure.Networking;
+using HeyeTodo.Shared.Enums;
 
 namespace HeyeTodo.Client.ViewModels;
 
@@ -40,9 +41,15 @@ public sealed partial class LoginViewModel : ViewModelBase
             _session.IsAuthenticated = true;
             _session.UserId = r.User.Id;
             _session.DisplayName = r.User.DisplayName;
+            _session.Roles = r.User.Roles;
+            _session.ActiveRoleContext = r.User.ActiveRoleContext;
 
-            // After login: if user hasn't chosen any roles yet, show role selection (skippable).
-            // TODO(M1): route to RoleSelectionViewModel when Roles == None.
+            if (r.User.Roles == RoleType.None)
+            {
+                _navigation.NavigateTo<RoleSelectionViewModel>();
+                return;
+            }
+
             _navigation.NavigateTo<ShellViewModel>();
         }
         finally

@@ -1,6 +1,8 @@
 using System.Text;
 using HeyeTodo.Server.Api.Hubs;
 using HeyeTodo.Server.Application.Auth;
+using HeyeTodo.Server.Application.Projects;
+using HeyeTodo.Server.Application.Tasks;
 using HeyeTodo.Server.Infrastructure.Auth;
 using HeyeTodo.Server.Infrastructure.Localization;
 using HeyeTodo.Server.Infrastructure.Persistence;
@@ -27,7 +29,7 @@ var allowedOrigins = builder.Configuration
 
 // ─── EF Core / Postgres ───────────────────────────────────────
 var cs = builder.Configuration.GetConnectionString("Default")
-         ?? "Host=localhost;Port=5432;Database=heyetodo;Username=heyetodo;Password=heyetodo";
+         ?? "Host=localhost;Port=55432;Database=heyetodo;Username=heyetodo;Password=heyetodo";
 builder.Services.AddDbContext<AppDbContext>(o => o.UseNpgsql(cs));
 
 // ─── Auth ─────────────────────────────────────────────────────
@@ -65,6 +67,8 @@ builder.Services.AddAuthorization();
 // ─── DI ───────────────────────────────────────────────────────
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<ITaskService, TaskService>();
 
 // ─── Web layer ────────────────────────────────────────────────
 builder.Services.AddControllers();
