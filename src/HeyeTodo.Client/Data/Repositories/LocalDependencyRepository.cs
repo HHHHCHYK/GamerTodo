@@ -18,7 +18,7 @@ public sealed class LocalDependencyRepository : IDependencyRepository
     {
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
         var ownedProjectIds = db.Projects.Where(x => x.OwnerId == ownerId).Select(x => x.Id);
-        var query = db.Dependencies.Where(x => ownedProjectIds.Contains(x.ProjectId));
+        var query = db.Dependencies.Where(x => x.DeletedAt == null && ownedProjectIds.Contains(x.ProjectId));
         if (projectId is not null)
         {
             query = query.Where(x => x.ProjectId == projectId.Value);
@@ -40,6 +40,16 @@ public sealed class LocalDependencyRepository : IDependencyRepository
             }
 
             var entity = await db.Dependencies.FirstOrDefaultAsync(x => x.Id == dto.Id, ct);
+            if (entity is not null && entity.IsDirty && entity.UpdatedAt > dto.Sync.UpdatedAt)
+            {
+                continue;
+            }
+
+            if (entity is not null && entity.ServerVersion >= dto.Sync.ServerVersion && dto.Sync.ServerVersion != 0)
+            {
+                continue;
+            }
+
             if (entity is null)
             {
                 entity = new LocalDependency { Id = dto.Id };

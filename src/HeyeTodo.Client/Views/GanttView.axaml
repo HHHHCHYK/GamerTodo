@@ -1,13 +1,144 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:HeyeTodo.Client.ViewModels"
+             xmlns:views="using:HeyeTodo.Client.Views"
              xmlns:loc="using:HeyeTodo.Client.Infrastructure.Localization"
              x:Class="HeyeTodo.Client.Views.GanttView"
              x:DataType="vm:GanttViewModel">
 
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
-        <TextBlock Text="{loc:T Key=Nav.Gantt}" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-        <TextBlock Opacity="0.5" Text="— M4 placeholder —" HorizontalAlignment="Center"/>
-    </StackPanel>
+    <Grid RowDefinitions="Auto,*" RowSpacing="16">
+        <Border Grid.Row="0" Padding="16" Background="{DynamicResource SystemRegionBrush}">
+            <StackPanel Spacing="12">
+                <TextBlock Text="{loc:T Key=Nav.Gantt}" FontSize="24" FontWeight="SemiBold"/>
+
+                <Grid ColumnDefinitions="2*,Auto,Auto,Auto,Auto,*" ColumnSpacing="12">
+                    <ComboBox Grid.Column="0" ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ProjectItemViewModel">
+                                <TextBlock Text="{Binding Name}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button Grid.Column="1" Content="{loc:T Key=Tasks.Refresh}" Command="{Binding RefreshCommand}"/>
+                    <Button Grid.Column="2" Content="−" Command="{Binding ZoomOutCommand}"/>
+                    <Button Grid.Column="3" Content="+" Command="{Binding ZoomInCommand}"/>
+                    <Button Grid.Column="4" Content="Today" Command="{Binding TodayCommand}"/>
+                    <TextBlock Grid.Column="5" Text="{Binding TimelineLabel}" VerticalAlignment="Center" Opacity="0.75"/>
+                </Grid>
+
+                <TextBlock Text="{Binding StatusMessage}" Foreground="DarkGreen"
+                           IsVisible="{Binding StatusMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}"
+                           IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Padding="12" Background="{DynamicResource SystemRegionBrush}">
+            <Grid RowDefinitions="Auto,*">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="Timeline" FontSize="18" FontWeight="SemiBold"/>
+                    <TextBlock Text="{loc:T Key=Tasks.NoProject}" Opacity="0.7" IsVisible="{Binding ShowNoProjectMessage}"/>
+                    <TextBlock Text="{loc:T Key=Tasks.Empty}" Opacity="0.7" IsVisible="{Binding ShowEmptyTasksMessage}"/>
+                </StackPanel>
+
+                <Grid Grid.Row="1" ColumnDefinitions="280,*" Margin="0,12,0,0" IsVisible="{Binding ShowGantt}">
+                    <Border Grid.Column="0" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,0">
+                        <Grid RowDefinitions="48,*">
+                            <Border Padding="10" Background="{DynamicResource SystemAltHighColor}">
+                                <TextBlock Text="{loc:T Key=Tasks.List}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            </Border>
+                            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                <ItemsControl ItemsSource="{Binding Tasks}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:GanttTaskItemViewModel">
+                                            <Border Height="44" Padding="10,4" Background="Transparent">
+                                                <Grid RowDefinitions="Auto,Auto">
+                                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+                                                        <TextBlock Text="{Binding StatusLabel}" FontSize="12" Opacity="0.72"/>
+                                                        <TextBlock Text="{Binding PriorityLabel}" FontSize="12" Opacity="0.72"/>
+                                                        <TextBlock Text="{Binding DateLabel}" FontSize="12" Opacity="0.55"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Grid>
+                    </Border>
+
+                    <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                        <Canvas Width="{Binding CanvasWidth}" Height="{Binding CanvasHeight}" ClipToBounds="True">
+                            <ItemsControl ItemsSource="{Binding DayHeaders}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <Canvas/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemContainerTheme>
+                                    <ControlTheme TargetType="ContentPresenter">
+                                        <Setter Property="Canvas.Left" Value="{Binding X}" x:CompileBindings="False"/>
+                                        <Setter Property="Canvas.Top" Value="0"/>
+                                    </ControlTheme>
+                                </ItemsControl.ItemContainerTheme>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:GanttDayHeaderViewModel">
+                                        <Border Width="{Binding Width}" Height="{Binding Height}" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" BorderThickness="0,0,1,1">
+                                            <Grid RowDefinitions="*,*">
+                                                <TextBlock Text="{Binding MonthLabel}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Opacity="0.55"/>
+                                                <TextBlock Grid.Row="1" Text="{Binding DayLabel}" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <ItemsControl ItemsSource="{Binding Dependencies}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <Canvas/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:GanttDependencyLineViewModel">
+                                        <Canvas>
+                                            <Line StartPoint="{Binding StartPoint}" EndPoint="{Binding EndPoint}" Stroke="#996B7280" StrokeThickness="1.5"/>
+                                            <Polyline Points="{Binding ArrowPoints}" Stroke="#996B7280" StrokeThickness="1.5" Fill="#996B7280"/>
+                                        </Canvas>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <ItemsControl ItemsSource="{Binding Tasks}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <Canvas/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemContainerTheme>
+                                    <ControlTheme TargetType="ContentPresenter">
+                                        <Setter Property="Canvas.Left" Value="{Binding X}" x:CompileBindings="False"/>
+                                        <Setter Property="Canvas.Top" Value="{Binding Y}" x:CompileBindings="False"/>
+                                    </ControlTheme>
+                                </ItemsControl.ItemContainerTheme>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:GanttTaskItemViewModel">
+                                        <views:GanttTaskBar Task="{Binding}" Width="{Binding Width}" Height="{Binding Height}" CornerRadius="5" Background="{DynamicResource SystemAccentColor}" DataContext="{Binding}">
+                                            <Grid ColumnDefinitions="6,*,6">
+                                                <Border Grid.Column="0" Background="#55FFFFFF"/>
+                                                <TextBlock Grid.Column="1" Text="{Binding Title}" Foreground="White" FontSize="12" VerticalAlignment="Center" Margin="8,0" TextTrimming="CharacterEllipsis"/>
+                                                <Border Grid.Column="2" Background="#55FFFFFF"/>
+                                            </Grid>
+                                        </views:GanttTaskBar>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Canvas>
+                    </ScrollViewer>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
 
 </UserControl>

@@ -21,6 +21,12 @@ public sealed class AppSettings
     /// <summary>OpenAI / Claude API key if user chose local-key planning.</summary>
     public string? LocalLlmApiKey { get; set; }
 
+    /// <summary>OpenAI-compatible endpoint for client-key planning.</summary>
+    public string? LocalLlmEndpoint { get; set; }
+
+    /// <summary>Model name for server-proxy or client-key planning.</summary>
+    public string LocalLlmModel { get; set; } = "gpt-4o-mini";
+
     /// <summary>Roles chosen by the user (bitmask from <c>RoleType</c>).</summary>
     public int Roles { get; set; }
 
@@ -59,6 +65,7 @@ public interface ISettingsService
     event EventHandler<SettingsChangedEventArgs>? Changed;
 
     void UpdateLocal(string? serverBaseUrl = null, string? language = null, string? planningMode = null);
+    void UpdatePlanningDriver(string? localLlmEndpoint = null, string? localLlmModel = null, string? localLlmApiKey = null);
     void UpdateRoles(RoleType roles, RoleType? activeRoleContext);
 }
 
@@ -67,6 +74,7 @@ public sealed class SettingsChangedEventArgs : EventArgs
     public bool ServerBaseUrlChanged { get; init; }
     public bool LanguageChanged { get; init; }
     public bool PlanningModeChanged { get; init; }
+    public bool PlanningDriverChanged { get; init; }
     public bool RolesChanged { get; init; }
 }
 
@@ -126,6 +134,37 @@ public sealed class SettingsService : ISettingsService
                 ServerBaseUrlChanged = serverChanged,
                 LanguageChanged = languageChanged,
                 PlanningModeChanged = planningChanged,
+            };
+        }
+
+        Changed?.Invoke(this, args);
+    }
+
+    public void UpdatePlanningDriver(string? localLlmEndpoint = null, string? localLlmModel = null, string? localLlmApiKey = null)
+    {
+        SettingsChangedEventArgs? args = null;
+
+        lock (_gate)
+        {
+            var normalizedEndpoint = localLlmEndpoint is null ? Current.LocalLlmEndpoint : (string.IsNullOrWhiteSpace(localLlmEndpoint) ? null : localLlmEndpoint.TrimEnd('/'));
+            var normalizedModel = string.IsNullOrWhiteSpace(localLlmModel) ? Current.LocalLlmModel : localLlmModel.Trim();
+            var normalizedKey = localLlmApiKey is null ? Current.LocalLlmApiKey : (string.IsNullOrWhiteSpace(localLlmApiKey) ? null : localLlmApiKey.Trim());
+            var changed = !string.Equals(Current.LocalLlmEndpoint, normalizedEndpoint, StringComparison.Ordinal)
+                          || !string.Equals(Current.LocalLlmModel, normalizedModel, StringComparison.Ordinal)
+                          || !string.Equals(Current.LocalLlmApiKey, normalizedKey, StringComparison.Ordinal);
+            if (!changed)
+            {
+                return;
+            }
+
+            Current.LocalLlmEndpoint = normalizedEndpoint;
+            Current.LocalLlmModel = normalizedModel;
+            Current.LocalLlmApiKey = normalizedKey;
+            SettingsStore.Save(Current);
+
+            args = new SettingsChangedEventArgs
+            {
+                PlanningDriverChanged = true,
             };
         }
 

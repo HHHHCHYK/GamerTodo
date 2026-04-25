@@ -22,8 +22,8 @@ public sealed record SyncPullResponse(
 
 public enum ChangeEntityType
 {
-    Project        = 1,
-    TodoTask       = 2,
+    Project = 1,
+    TodoTask = 2,
     TaskDependency = 3,
 }
 

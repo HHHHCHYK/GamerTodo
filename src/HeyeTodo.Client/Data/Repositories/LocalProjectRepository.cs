@@ -129,6 +129,16 @@ public sealed class LocalProjectRepository : IProjectRepository
         foreach (var dto in projects)
         {
             var entity = await db.Projects.FirstOrDefaultAsync(x => x.Id == dto.Id && x.OwnerId == ownerId, ct);
+            if (entity is not null && entity.IsDirty && entity.UpdatedAt > dto.Sync.UpdatedAt)
+            {
+                continue;
+            }
+
+            if (entity is not null && entity.ServerVersion >= dto.Sync.ServerVersion && dto.Sync.ServerVersion != 0)
+            {
+                continue;
+            }
+
             if (entity is null)
             {
                 entity = new LocalProject

@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:HeyeTodo.Client.ViewModels"
+             xmlns:loc="using:HeyeTodo.Client.Infrastructure.Localization"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="HeyeTodo.Client.Views.PlanningView"
+             x:DataType="vm:PlanningViewModel">
+    <Grid RowDefinitions="Auto,*" RowSpacing="16">
+        <Border Padding="16" Background="{DynamicResource SystemRegionBrush}">
+            <StackPanel Spacing="12">
+                <TextBlock Text="{loc:T Key=Planning.Title}" FontSize="24" FontWeight="SemiBold"/>
+                <Grid ColumnDefinitions="2*,Auto,Auto" ColumnSpacing="12">
+                    <ComboBox Grid.Column="0" ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ProjectItemViewModel">
+                                <TextBlock Text="{Binding Name}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button Grid.Column="1" Content="{loc:T Key=Tasks.Refresh}" Command="{Binding RefreshCommand}"/>
+                    <Button Grid.Column="2" Content="{loc:T Key=Planning.Generate}" Command="{Binding GenerateCommand}" Classes="accent"/>
+                </Grid>
+                <TextBox Text="{Binding Prompt}" PlaceholderText="{loc:T Key=Planning.Prompt}" AcceptsReturn="True" MinHeight="72"/>
+                <TextBlock Text="{Binding DriverLabel}" Opacity="0.75"/>
+                <TextBlock Text="{Binding Summary}" Foreground="DarkGreen" IsVisible="{Binding Summary, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="2*,*" ColumnSpacing="16">
+            <Border Padding="16" Background="{DynamicResource SystemRegionBrush}">
+                <Grid RowDefinitions="Auto,*" RowSpacing="12">
+                    <TextBlock Text="{loc:T Key=Planning.Suggestions}" FontSize="18" FontWeight="SemiBold"/>
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Suggestions}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:PlanningSuggestionViewModel">
+                                <Border Padding="12" Margin="0,0,0,8" Background="Transparent">
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                        <TextBlock Text="{Binding Rank}" FontSize="20" FontWeight="SemiBold"/>
+                                        <StackPanel Grid.Column="1" Spacing="4">
+                                            <TextBlock Text="{Binding DateRange}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Reason}" Opacity="0.75" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding Score}" Opacity="0.55"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1" Padding="16" Background="{DynamicResource SystemRegionBrush}">
+                <Grid RowDefinitions="Auto,*" RowSpacing="12">
+                    <TextBlock Text="{loc:T Key=Planning.Issues}" FontSize="18" FontWeight="SemiBold"/>
+                    <ItemsControl Grid.Row="1" ItemsSource="{Binding Issues}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:PlanningIssueViewModel">
+                                <Border Padding="12" Margin="0,0,0,8" Background="{DynamicResource SystemChromeLowColor}">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="{Binding Code}" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding Message}" Opacity="0.75" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

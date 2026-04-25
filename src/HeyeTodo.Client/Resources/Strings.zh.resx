@@ -37,6 +37,8 @@
   <data name="App.Tagline" xml:space="preserve"><value>为独立游戏开发者打造的待办与协同工具。</value></data>
   <data name="Nav.Tasks" xml:space="preserve"><value>任务</value></data>
   <data name="Nav.Gantt" xml:space="preserve"><value>甘特图</value></data>
+  <data name="Nav.RolePanels" xml:space="preserve"><value>角色面板</value></data>
+  <data name="Nav.Planning" xml:space="preserve"><value>规划</value></data>
   <data name="Nav.MiniGames" xml:space="preserve"><value>小游戏</value></data>
   <data name="Nav.Settings" xml:space="preserve"><value>设置</value></data>
   <data name="MiniGames.ComingSoon" xml:space="preserve"><value>小游戏 · 敬请期待</value></data>
@@ -139,4 +141,73 @@
   <data name="Tasks.Error.InvalidEndDate" xml:space="preserve"><value>请输入有效的结束日期，格式为 yyyy-MM-dd。</value></data>
   <data name="Tasks.Error.InvalidEstimate" xml:space="preserve"><value>请输入有效的预估工时。</value></data>
   <data name="Tasks.Warning.LocalOnly" xml:space="preserve"><value>已保存到本地，等待远端同步。</value></data>
+  <data name="RolePanels.Title" xml:space="preserve"><value>角色面板</value></data>
+  <data name="RolePanels.NoRoles" xml:space="preserve"><value>当前没有选择角色。请到设置中启用一个或多个角色面板。</value></data>
+  <data name="RolePanels.Dashboard" xml:space="preserve"><value>仪表盘</value></data>
+  <data name="RolePanels.Actions" xml:space="preserve"><value>角色动作</value></data>
+  <data name="RolePanels.Fields" xml:space="preserve"><value>角色字段</value></data>
+  <data name="RolePanels.SelectTask" xml:space="preserve"><value>选择一个任务来编辑角色专属字段。</value></data>
+  <data name="RolePanels.FieldsSaved" xml:space="preserve"><value>角色字段已保存。</value></data>
+  <data name="RolePanels.ActionApplied" xml:space="preserve"><value>角色动作已应用。</value></data>
+  <data name="RoleFields.Producer.Milestone" xml:space="preserve"><value>里程碑</value></data>
+  <data name="RoleFields.Producer.Risk" xml:space="preserve"><value>风险</value></data>
+  <data name="RoleFields.Producer.OwnerNote" xml:space="preserve"><value>负责人备注</value></data>
+  <data name="RoleFields.Designer.FeatureArea" xml:space="preserve"><value>功能区域</value></data>
+  <data name="RoleFields.Designer.SpecLink" xml:space="preserve"><value>设计文档链接</value></data>
+  <data name="RoleFields.Designer.Acceptance" xml:space="preserve"><value>验收说明</value></data>
+  <data name="RoleFields.Artist.AssetType" xml:space="preserve"><value>资源类型</value></data>
+  <data name="RoleFields.Artist.Reference" xml:space="preserve"><value>参考资料</value></data>
+  <data name="RoleFields.Artist.Delivery" xml:space="preserve"><value>交付路径</value></data>
+  <data name="RoleFields.Programmer.Area" xml:space="preserve"><value>代码区域</value></data>
+  <data name="RoleFields.Programmer.Branch" xml:space="preserve"><value>分支或 PR</value></data>
+  <data name="RoleFields.Programmer.TestPlan" xml:space="preserve"><value>测试计划</value></data>
+  <data name="RoleFields.Sound.Cue" xml:space="preserve"><value>音频 Cue</value></data>
+  <data name="RoleFields.Sound.Mood" xml:space="preserve"><value>情绪</value></data>
+  <data name="RoleFields.Sound.MixNotes" xml:space="preserve"><value>混音备注</value></data>
+  <data name="RoleActions.Producer.Prioritize" xml:space="preserve"><value>回到排期池</value></data>
+  <data name="RoleActions.Producer.Prioritize.Description" xml:space="preserve"><value>将选中任务移回积压状态，便于重新规划。</value></data>
+  <data name="RoleActions.Producer.Review" xml:space="preserve"><value>送审</value></data>
+  <data name="RoleActions.Producer.Review.Description" xml:space="preserve"><value>将选中任务标记为等待评审。</value></data>
+  <data name="RoleActions.Designer.Spec" xml:space="preserve"><value>进入实现准备</value></data>
+  <data name="RoleActions.Designer.Spec.Description" xml:space="preserve"><value>将选中的设计任务移动到待办。</value></data>
+  <data name="RoleActions.Designer.Validate" xml:space="preserve"><value>设计验收</value></data>
+  <data name="RoleActions.Designer.Validate.Description" xml:space="preserve"><value>将选中任务标记为设计评审。</value></data>
+  <data name="RoleActions.Artist.Blockout" xml:space="preserve"><value>开始资源制作</value></data>
+  <data name="RoleActions.Artist.Blockout.Description" xml:space="preserve"><value>将选中的美术资源任务移动到进行中。</value></data>
+  <data name="RoleActions.Artist.Polish" xml:space="preserve"><value>提交美术评审</value></data>
+  <data name="RoleActions.Artist.Polish.Description" xml:space="preserve"><value>将选中的资源任务送入评审。</value></data>
+  <data name="RoleActions.Programmer.Implement" xml:space="preserve"><value>开始实现</value></data>
+  <data name="RoleActions.Programmer.Implement.Description" xml:space="preserve"><value>将选中的程序任务移动到进行中。</value></data>
+  <data name="RoleActions.Programmer.CodeReview" xml:space="preserve"><value>请求代码评审</value></data>
+  <data name="RoleActions.Programmer.CodeReview.Description" xml:space="preserve"><value>将选中任务送入评审。</value></data>
+  <data name="RoleActions.Sound.Record" xml:space="preserve"><value>开始音频制作</value></data>
+  <data name="RoleActions.Sound.Record.Description" xml:space="preserve"><value>将选中的音频任务移动到进行中。</value></data>
+  <data name="RoleActions.Sound.Mix" xml:space="preserve"><value>提交混音评审</value></data>
+  <data name="RoleActions.Sound.Mix.Description" xml:space="preserve"><value>将选中的音频任务送入评审。</value></data>
+  <data name="RoleDashboard.Producer.Schedule" xml:space="preserve"><value>排期关注</value></data>
+  <data name="RoleDashboard.Producer.Schedule.Description" xml:space="preserve"><value>默认排序突出优先级和规划压力。</value></data>
+  <data name="RoleDashboard.Producer.Risks" xml:space="preserve"><value>风险跟踪</value></data>
+  <data name="RoleDashboard.Producer.Risks.Description" xml:space="preserve"><value>制作人字段记录里程碑、风险和负责人备注。</value></data>
+  <data name="RoleDashboard.Designer.Specs" xml:space="preserve"><value>设计就绪度</value></data>
+  <data name="RoleDashboard.Designer.Specs.Description" xml:space="preserve"><value>策划字段记录功能区域、设计文档和验收说明。</value></data>
+  <data name="RoleDashboard.Designer.Validation" xml:space="preserve"><value>验收</value></data>
+  <data name="RoleDashboard.Designer.Validation.Description" xml:space="preserve"><value>动作可帮助设计任务进入评审流程。</value></data>
+  <data name="RoleDashboard.Artist.Pipeline" xml:space="preserve"><value>美术管线</value></data>
+  <data name="RoleDashboard.Artist.Pipeline.Description" xml:space="preserve"><value>资源任务展示类型、参考资料和交付路径。</value></data>
+  <data name="RoleDashboard.Artist.Deliverables" xml:space="preserve"><value>交付物</value></data>
+  <data name="RoleDashboard.Artist.Deliverables.Description" xml:space="preserve"><value>默认排序突出临近的美术交付日期。</value></data>
+  <data name="RoleDashboard.Programmer.Implementation" xml:space="preserve"><value>实现</value></data>
+  <data name="RoleDashboard.Programmer.Implementation.Description" xml:space="preserve"><value>程序字段记录代码区域、分支和测试计划。</value></data>
+  <data name="RoleDashboard.Programmer.Quality" xml:space="preserve"><value>质量关卡</value></data>
+  <data name="RoleDashboard.Programmer.Quality.Description" xml:space="preserve"><value>动作可推动任务经过实现和评审。</value></data>
+  <data name="RoleDashboard.Sound.Cues" xml:space="preserve"><value>音频 Cue</value></data>
+  <data name="RoleDashboard.Sound.Cues.Description" xml:space="preserve"><value>音频字段记录 Cue 名称、情绪和混音备注。</value></data>
+  <data name="RoleDashboard.Sound.Mix" xml:space="preserve"><value>混音评审</value></data>
+  <data name="RoleDashboard.Sound.Mix.Description" xml:space="preserve"><value>默认排序突出临近的音频评审工作。</value></data>
+  <data name="Planning.Title" xml:space="preserve"><value>规划</value></data>
+  <data name="Planning.Generate" xml:space="preserve"><value>生成计划</value></data>
+  <data name="Planning.Prompt" xml:space="preserve"><value>可选的规划指令</value></data>
+  <data name="Planning.Driver" xml:space="preserve"><value>规划驱动：{0}</value></data>
+  <data name="Planning.Suggestions" xml:space="preserve"><value>建议</value></data>
+  <data name="Planning.Issues" xml:space="preserve"><value>问题</value></data>
 </root>

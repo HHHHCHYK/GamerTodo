@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Http;
 using HeyeTodo.Client.Application.Tasks;
+using HeyeTodo.Client.Application.Planning;
 using HeyeTodo.Client.Application.Sync;
 using HeyeTodo.Client.Data;
 using HeyeTodo.Client.Data.Repositories;
@@ -54,6 +55,8 @@ public static class AppHost
         sc.AddTransient<ProjectApiClient>();
         sc.AddTransient<TaskApiClient>();
         sc.AddSingleton<SyncCursorStore>();
+        sc.AddSingleton<SyncOutboxStore>();
+        sc.AddSingleton<SyncInboxStore>();
         sc.AddSingleton<SignalRSyncClient>();
         sc.AddTransient<SyncApiClient>();
 
@@ -65,6 +68,10 @@ public static class AppHost
         sc.AddTransient<IDependencyRepository, LocalDependencyRepository>();
         sc.AddSingleton<ISyncCoordinator, SyncCoordinator>();
         sc.AddTransient<ITaskWorkspaceService, TaskWorkspaceService>();
+        sc.AddSingleton<IPlanningDriver, RulePlanningDriver>();
+        sc.AddSingleton<IPlanningDriver, ServerProxyPlanningDriver>();
+        sc.AddSingleton<IPlanningDriver, ClientKeyPlanningDriver>();
+        sc.AddSingleton<IPlanningApplicationService, PlanningApplicationService>();
 
         // ─── ViewModels ──────────────────────────────────────
         sc.AddSingleton<MainWindowViewModel>();
@@ -74,6 +81,8 @@ public static class AppHost
         sc.AddTransient<RoleSelectionViewModel>();
         sc.AddTransient<TaskListViewModel>();
         sc.AddTransient<GanttViewModel>();
+        sc.AddTransient<RolePanelsViewModel>();
+        sc.AddTransient<PlanningViewModel>();
         sc.AddTransient<MiniGamesHubViewModel>();
         sc.AddTransient<SettingsViewModel>();
         sc.AddTransient<SplashViewModel>();

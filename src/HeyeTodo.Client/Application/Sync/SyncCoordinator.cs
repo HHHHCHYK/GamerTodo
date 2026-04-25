@@ -20,6 +20,8 @@ public sealed class SyncCoordinator : ISyncCoordinator
     private readonly IDependencyRepository _dependencies;
     private readonly SyncApiClient _syncApi;
     private readonly SyncCursorStore _cursorStore;
+    private readonly SyncOutboxStore _outboxStore;
+    private readonly SyncInboxStore _inboxStore;
     private readonly SignalRSyncClient _signalR;
     private readonly Guid _clientId;
     private CancellationTokenSource? _loopCts;
@@ -33,6 +35,8 @@ public sealed class SyncCoordinator : ISyncCoordinator
         IDependencyRepository dependencies,
         SyncApiClient syncApi,
         SyncCursorStore cursorStore,
+        SyncOutboxStore outboxStore,
+        SyncInboxStore inboxStore,
         SignalRSyncClient signalR)
     {
         _dbFactory = dbFactory;
@@ -41,6 +45,8 @@ public sealed class SyncCoordinator : ISyncCoordinator
         _dependencies = dependencies;
         _syncApi = syncApi;
         _cursorStore = cursorStore;
+        _outboxStore = outboxStore;
+        _inboxStore = inboxStore;
         _signalR = signalR;
         _clientId = AppPaths.GetOrCreateClientId();
         _signalR.ProjectInvalidated += HandleProjectInvalidated;
@@ -50,28 +56,62 @@ public sealed class SyncCoordinator : ISyncCoordinator
 
     public async Task<SyncRunResult> SyncNowAsync(Guid ownerId, CancellationToken ct = default)
     {
-        var push = await PushAsync(ownerId, ct);
-        var pull = await PullAsync(ownerId, ct);
-        return new SyncRunResult(push, pull.PullSucceeded, push && pull.PullSucceeded ? null : pull.Warning ?? "Sync failed.");
+        try
+        {
+            var push = await PushAsync(ownerId, ct);
+            var pull = await PullAsync(ownerId, ct);
+            return new SyncRunResult(push, pull.PullSucceeded, push && pull.PullSucceeded ? null : pull.Warning ?? "Sync failed.");
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return new SyncRunResult(false, false, ex.Message);
+        }
     }
 
     public async Task<SyncRunResult> PullAsync(Guid ownerId, CancellationToken ct = default)
     {
-        var response = await _syncApi.PullAsync(_cursorStore.Load(), ct);
-        if (response is null)
+        try
         {
-            return new SyncRunResult(true, false, "Pull failed.");
-        }
+            var response = await _syncApi.PullAsync(_cursorStore.Load(), ct);
+            if (response is null)
+            {
+                return new SyncRunResult(true, false, "Pull failed.");
+            }
 
-        await ApplyRemoteChangesAsync(ownerId, response.Changes, ct);
-        _cursorStore.Save(response.ServerVersion);
-        return new SyncRunResult(true, true);
+            await _inboxStore.RecordReceivedAsync(ownerId, response.Changes, ct);
+            await ApplyRemoteChangesAsync(ownerId, response.Changes, ct);
+            await _inboxStore.MarkAppliedAsync(ownerId, response.Changes, ct);
+            _cursorStore.Save(response.ServerVersion);
+            return new SyncRunResult(true, true);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            return new SyncRunResult(true, false, ex.Message);
+        }
     }
 
     public async Task StartAsync(Guid ownerId, CancellationToken ct = default)
     {
         _ownerId = ownerId;
-        await _signalR.EnsureConnectedAsync(ct);
+        try
+        {
+            await _signalR.EnsureConnectedAsync(ct);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+        }
 
         if (_loopTask is not null && !_loopTask.IsCompleted)
         {
@@ -100,18 +140,54 @@ public sealed class SyncCoordinator : ISyncCoordinator
             }
         }
 
-        await _signalR.StopAsync(ct);
+        try
+        {
+            await _signalR.StopAsync(ct);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+        }
     }
 
-    public Task SubscribeProjectAsync(Guid projectId, CancellationToken ct = default)
-        => _signalR.SubscribeProjectAsync(projectId, ct);
+    public async Task SubscribeProjectAsync(Guid projectId, CancellationToken ct = default)
+    {
+        try
+        {
+            await _signalR.SubscribeProjectAsync(projectId, ct);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+        }
+    }
 
-    public Task UnsubscribeProjectAsync(Guid projectId, CancellationToken ct = default)
-        => _signalR.UnsubscribeProjectAsync(projectId, ct);
+    public async Task UnsubscribeProjectAsync(Guid projectId, CancellationToken ct = default)
+    {
+        try
+        {
+            await _signalR.UnsubscribeProjectAsync(projectId, ct);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+        }
+    }
 
     private async Task<bool> PushAsync(Guid ownerId, CancellationToken ct)
     {
         var changes = await CollectDirtyChangesAsync(ownerId, ct);
+        await _outboxStore.RebuildPendingAsync(ownerId, changes, ct);
+        changes = (await _outboxStore.LoadPendingChangesAsync(ownerId, ct)).ToList();
         if (changes.Count == 0)
         {
             return true;
@@ -124,6 +200,8 @@ public sealed class SyncCoordinator : ISyncCoordinator
         }
 
         await ApplyPushResultAsync(ownerId, changes, response, ct);
+        await _outboxStore.MarkAcceptedAsync(ownerId, response.AcceptedIds, ct);
+        await _outboxStore.MarkConflictsAsync(ownerId, response.Conflicts, ct);
         _cursorStore.Save(response.ServerVersion);
         return true;
     }
@@ -138,9 +216,9 @@ public sealed class SyncCoordinator : ISyncCoordinator
         var dirtyDependencies = await db.Dependencies.Where(x => allOwnedProjectIds.Contains(x.ProjectId) && x.IsDirty).ToListAsync(ct);
 
         var changes = new List<SyncChange>(dirtyProjects.Count + dirtyTasks.Count + dirtyDependencies.Count);
-        changes.AddRange(dirtyProjects.Select(MapProjectChange));
-        changes.AddRange(dirtyTasks.Select(MapTaskChange));
-        changes.AddRange(dirtyDependencies.Select(MapDependencyChange));
+        changes.AddRange(dirtyProjects.Select(SyncOutboxStore.MapProjectChange));
+        changes.AddRange(dirtyTasks.Select(SyncOutboxStore.MapTaskChange));
+        changes.AddRange(dirtyDependencies.Select(SyncOutboxStore.MapDependencyChange));
         return changes.OrderBy(x => x.UpdatedAt).ToList();
     }
 
@@ -303,81 +381,6 @@ public sealed class SyncCoordinator : ISyncCoordinator
         {
         }
     }
-
-    private static SyncChange MapProjectChange(LocalProject project)
-        => new(
-            ChangeEntityType.Project,
-            project.DeletedAt is null ? ChangeOperation.Upsert : ChangeOperation.Delete,
-            project.Id,
-            JsonSerializer.Serialize(new ProjectDto(
-                project.Id,
-                project.OwnerId,
-                project.Name,
-                project.Description,
-                project.CreatedAt,
-                new SyncMeta
-                {
-                    ServerVersion = project.ServerVersion,
-                    UpdatedAt = project.UpdatedAt,
-                    UpdatedBy = project.UpdatedBy,
-                    ClientId = project.ClientId,
-                    DeletedAt = project.DeletedAt,
-                }), JsonOptions),
-            project.UpdatedAt,
-            project.UpdatedBy,
-            project.ClientId);
-
-    private static SyncChange MapTaskChange(LocalTask task)
-        => new(
-            ChangeEntityType.TodoTask,
-            task.DeletedAt is null ? ChangeOperation.Upsert : ChangeOperation.Delete,
-            task.Id,
-            JsonSerializer.Serialize(new TaskDto(
-                task.Id,
-                task.ProjectId,
-                task.Title,
-                task.Description,
-                task.Status,
-                task.Priority,
-                task.StartDate,
-                task.EndDate,
-                task.EstimatedHours,
-                task.AssigneeId,
-                DeserializeRoleFields(task.RoleFieldsJson),
-                new SyncMeta
-                {
-                    ServerVersion = task.ServerVersion,
-                    UpdatedAt = task.UpdatedAt,
-                    UpdatedBy = task.UpdatedBy,
-                    ClientId = task.ClientId,
-                    DeletedAt = task.DeletedAt,
-                }), JsonOptions),
-            task.UpdatedAt,
-            task.UpdatedBy,
-            task.ClientId);
-
-    private static SyncChange MapDependencyChange(LocalDependency dependency)
-        => new(
-            ChangeEntityType.TaskDependency,
-            dependency.DeletedAt is null ? ChangeOperation.Upsert : ChangeOperation.Delete,
-            dependency.Id,
-            JsonSerializer.Serialize(new TaskDependencyDto(
-                dependency.Id,
-                dependency.ProjectId,
-                dependency.PredecessorId,
-                dependency.SuccessorId,
-                dependency.Type,
-                new SyncMeta
-                {
-                    ServerVersion = dependency.ServerVersion,
-                    UpdatedAt = dependency.UpdatedAt,
-                    UpdatedBy = dependency.UpdatedBy,
-                    ClientId = dependency.ClientId,
-                    DeletedAt = dependency.DeletedAt,
-                }), JsonOptions),
-            dependency.UpdatedAt,
-            dependency.UpdatedBy,
-            dependency.ClientId);
 
     private static ProjectDto EnsureProjectDeletedAt(ProjectDto dto, SyncChange change)
         => dto with

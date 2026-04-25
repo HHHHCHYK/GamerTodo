@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace HeyeTodo.Client.Views;
 
-public partial class MainWindow : Window
+public partial class RolePanelsView : UserControl
 {
-    public MainWindow()
+    public RolePanelsView()
     {
         InitializeComponent();
     }

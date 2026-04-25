@@ -1,0 +1,129 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:HeyeTodo.Client.ViewModels"
+             xmlns:loc="using:HeyeTodo.Client.Infrastructure.Localization"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="HeyeTodo.Client.Views.RolePanelsView"
+             x:DataType="vm:RolePanelsViewModel">
+
+    <Grid RowDefinitions="Auto,*" RowSpacing="16">
+        <Border Padding="16" Background="{DynamicResource SystemRegionBrush}">
+            <StackPanel Spacing="12">
+                <TextBlock Text="{loc:T Key=RolePanels.Title}" FontSize="24" FontWeight="SemiBold"/>
+                <Grid ColumnDefinitions="2*,Auto,3*" ColumnSpacing="12">
+                    <ComboBox Grid.Column="0" ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ProjectItemViewModel">
+                                <TextBlock Text="{Binding Name}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button Grid.Column="1" Content="{loc:T Key=Tasks.Refresh}" Command="{Binding RefreshCommand}"/>
+                    <ListBox Grid.Column="2" ItemsSource="{Binding RolePanels}" SelectedItem="{Binding SelectedRolePanel}" Background="Transparent" BorderThickness="0">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:RolePanelTabViewModel">
+                                <Border Padding="12,6" Margin="0,0,8,0" Background="{DynamicResource SystemAltHighColor}">
+                                    <TextBlock Text="{Binding Name}"/>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+                <TextBlock Text="{loc:T Key=RolePanels.NoRoles}" Opacity="0.7" IsVisible="{Binding ShowNoRolesMessage}"/>
+                <TextBlock Text="{loc:T Key=Tasks.NoProject}" Opacity="0.7" IsVisible="{Binding ShowNoProjectMessage}"/>
+                <TextBlock Text="{Binding StatusMessage}" Foreground="DarkGreen" IsVisible="{Binding StatusMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="1.1*,1.5*,1.2*" ColumnSpacing="16">
+            <Border Grid.Column="0" Padding="16" Background="{DynamicResource SystemRegionBrush}">
+                <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
+                    <TextBlock Text="{loc:T Key=RolePanels.Dashboard}" FontSize="18" FontWeight="SemiBold"/>
+                    <ItemsControl Grid.Row="1" ItemsSource="{Binding DashboardCards}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:RoleDashboardCardViewModel">
+                                <Border Padding="12" Margin="0,0,0,8" Background="{DynamicResource SystemChromeLowColor}">
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                                        <TextBlock Text="{Binding Description}" Opacity="0.75" TextWrapping="Wrap"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <StackPanel Grid.Row="2" Spacing="8">
+                        <TextBlock Text="{loc:T Key=RolePanels.Actions}" FontSize="16" FontWeight="SemiBold"/>
+                        <ItemsControl ItemsSource="{Binding Actions}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:RoleTaskActionViewModel">
+                                    <Button Margin="0,0,0,8" Command="{Binding $parent[UserControl].DataContext.ApplyActionCommand}" CommandParameter="{Binding}" HorizontalAlignment="Stretch">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="{Binding Label}" FontWeight="SemiBold"/>
+                                            <TextBlock Text="{Binding Description}" Opacity="0.75" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1" Padding="16" Background="{DynamicResource SystemRegionBrush}">
+                <Grid RowDefinitions="Auto,*" RowSpacing="12">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:T Key=Tasks.List}" FontSize="18" FontWeight="SemiBold"/>
+                        <TextBlock Text="{loc:T Key=Tasks.Empty}" Opacity="0.7" IsVisible="{Binding ShowEmptyTasksMessage}"/>
+                    </StackPanel>
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Tasks}" SelectedItem="{Binding SelectedTask}" IsVisible="{Binding ShowTaskList}">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:TaskItemViewModel">
+                                <Border Padding="12" Margin="0,0,0,8" Background="Transparent">
+                                    <Grid RowDefinitions="Auto,Auto" RowSpacing="6">
+                                        <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
+                                        <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="{Binding StatusLabel}" Opacity="0.8"/>
+                                            <TextBlock Text="{Binding PriorityLabel}" Opacity="0.8"/>
+                                            <TextBlock Text="{Binding ScheduleLabel}" Opacity="0.6"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Padding="16" Background="{DynamicResource SystemRegionBrush}">
+                <Grid RowDefinitions="Auto,*" RowSpacing="12">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:T Key=RolePanels.Fields}" FontSize="18" FontWeight="SemiBold"/>
+                        <TextBlock Text="{loc:T Key=RolePanels.SelectTask}" Opacity="0.7" IsVisible="{Binding !ShowRoleEditor}"/>
+                    </StackPanel>
+                    <StackPanel Grid.Row="1" Spacing="10" IsVisible="{Binding ShowRoleEditor}">
+                        <ItemsControl ItemsSource="{Binding FieldEditors}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:RoleFieldEditorViewModel">
+                                    <StackPanel Spacing="4" Margin="0,0,0,10">
+                                        <TextBlock Text="{Binding Label}" Opacity="0.85"/>
+                                        <TextBox Text="{Binding Value}" AcceptsReturn="{Binding IsMultiline}" MinHeight="32"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Button Content="{loc:T Key=Common.Save}" Command="{Binding SaveRoleFieldsCommand}" Classes="accent" HorizontalAlignment="Right"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -213,6 +213,16 @@ public sealed class LocalTaskRepository : ITaskRepository
             }
 
             var entity = await db.Tasks.FirstOrDefaultAsync(x => x.Id == dto.Id, ct);
+            if (entity is not null && entity.IsDirty && entity.UpdatedAt > dto.Sync.UpdatedAt)
+            {
+                continue;
+            }
+
+            if (entity is not null && entity.ServerVersion >= dto.Sync.ServerVersion && dto.Sync.ServerVersion != 0)
+            {
+                continue;
+            }
+
             if (entity is null)
             {
                 entity = new LocalTask

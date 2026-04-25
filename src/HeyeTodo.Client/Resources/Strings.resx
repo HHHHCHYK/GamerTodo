@@ -37,6 +37,8 @@
   <data name="App.Tagline" xml:space="preserve"><value>A TODO tool built for indie game developers.</value></data>
   <data name="Nav.Tasks" xml:space="preserve"><value>Tasks</value></data>
   <data name="Nav.Gantt" xml:space="preserve"><value>Gantt</value></data>
+  <data name="Nav.RolePanels" xml:space="preserve"><value>Role panels</value></data>
+  <data name="Nav.Planning" xml:space="preserve"><value>Planning</value></data>
   <data name="Nav.MiniGames" xml:space="preserve"><value>Mini-games</value></data>
   <data name="Nav.Settings" xml:space="preserve"><value>Settings</value></data>
   <data name="MiniGames.ComingSoon" xml:space="preserve"><value>Mini-games — coming soon</value></data>
@@ -139,4 +141,73 @@
   <data name="Tasks.Error.InvalidEndDate" xml:space="preserve"><value>Enter a valid end date in yyyy-MM-dd format.</value></data>
   <data name="Tasks.Error.InvalidEstimate" xml:space="preserve"><value>Enter a valid estimated hours value.</value></data>
   <data name="Tasks.Warning.LocalOnly" xml:space="preserve"><value>Saved locally. Remote sync is pending.</value></data>
+  <data name="RolePanels.Title" xml:space="preserve"><value>Role panels</value></data>
+  <data name="RolePanels.NoRoles" xml:space="preserve"><value>No roles are selected. Open Settings to enable one or more role panels.</value></data>
+  <data name="RolePanels.Dashboard" xml:space="preserve"><value>Dashboard</value></data>
+  <data name="RolePanels.Actions" xml:space="preserve"><value>Role actions</value></data>
+  <data name="RolePanels.Fields" xml:space="preserve"><value>Role fields</value></data>
+  <data name="RolePanels.SelectTask" xml:space="preserve"><value>Select a task to edit role-specific fields.</value></data>
+  <data name="RolePanels.FieldsSaved" xml:space="preserve"><value>Role fields saved.</value></data>
+  <data name="RolePanels.ActionApplied" xml:space="preserve"><value>Role action applied.</value></data>
+  <data name="RoleFields.Producer.Milestone" xml:space="preserve"><value>Milestone</value></data>
+  <data name="RoleFields.Producer.Risk" xml:space="preserve"><value>Risk</value></data>
+  <data name="RoleFields.Producer.OwnerNote" xml:space="preserve"><value>Owner note</value></data>
+  <data name="RoleFields.Designer.FeatureArea" xml:space="preserve"><value>Feature area</value></data>
+  <data name="RoleFields.Designer.SpecLink" xml:space="preserve"><value>Spec link</value></data>
+  <data name="RoleFields.Designer.Acceptance" xml:space="preserve"><value>Acceptance notes</value></data>
+  <data name="RoleFields.Artist.AssetType" xml:space="preserve"><value>Asset type</value></data>
+  <data name="RoleFields.Artist.Reference" xml:space="preserve"><value>Reference</value></data>
+  <data name="RoleFields.Artist.Delivery" xml:space="preserve"><value>Delivery path</value></data>
+  <data name="RoleFields.Programmer.Area" xml:space="preserve"><value>Code area</value></data>
+  <data name="RoleFields.Programmer.Branch" xml:space="preserve"><value>Branch or PR</value></data>
+  <data name="RoleFields.Programmer.TestPlan" xml:space="preserve"><value>Test plan</value></data>
+  <data name="RoleFields.Sound.Cue" xml:space="preserve"><value>Cue name</value></data>
+  <data name="RoleFields.Sound.Mood" xml:space="preserve"><value>Mood</value></data>
+  <data name="RoleFields.Sound.MixNotes" xml:space="preserve"><value>Mix notes</value></data>
+  <data name="RoleActions.Producer.Prioritize" xml:space="preserve"><value>Prioritize backlog</value></data>
+  <data name="RoleActions.Producer.Prioritize.Description" xml:space="preserve"><value>Move the selected task back to backlog for planning.</value></data>
+  <data name="RoleActions.Producer.Review" xml:space="preserve"><value>Send to review</value></data>
+  <data name="RoleActions.Producer.Review.Description" xml:space="preserve"><value>Mark the selected task as ready for review.</value></data>
+  <data name="RoleActions.Designer.Spec" xml:space="preserve"><value>Ready for implementation</value></data>
+  <data name="RoleActions.Designer.Spec.Description" xml:space="preserve"><value>Move the selected design task into the todo lane.</value></data>
+  <data name="RoleActions.Designer.Validate" xml:space="preserve"><value>Validate design</value></data>
+  <data name="RoleActions.Designer.Validate.Description" xml:space="preserve"><value>Mark the selected task for design review.</value></data>
+  <data name="RoleActions.Artist.Blockout" xml:space="preserve"><value>Start asset work</value></data>
+  <data name="RoleActions.Artist.Blockout.Description" xml:space="preserve"><value>Move the selected asset task into progress.</value></data>
+  <data name="RoleActions.Artist.Polish" xml:space="preserve"><value>Submit art review</value></data>
+  <data name="RoleActions.Artist.Polish.Description" xml:space="preserve"><value>Send the selected asset task to review.</value></data>
+  <data name="RoleActions.Programmer.Implement" xml:space="preserve"><value>Start implementation</value></data>
+  <data name="RoleActions.Programmer.Implement.Description" xml:space="preserve"><value>Move the selected programming task into progress.</value></data>
+  <data name="RoleActions.Programmer.CodeReview" xml:space="preserve"><value>Request code review</value></data>
+  <data name="RoleActions.Programmer.CodeReview.Description" xml:space="preserve"><value>Send the selected task to review.</value></data>
+  <data name="RoleActions.Sound.Record" xml:space="preserve"><value>Start sound work</value></data>
+  <data name="RoleActions.Sound.Record.Description" xml:space="preserve"><value>Move the selected sound task into progress.</value></data>
+  <data name="RoleActions.Sound.Mix" xml:space="preserve"><value>Submit mix review</value></data>
+  <data name="RoleActions.Sound.Mix.Description" xml:space="preserve"><value>Send the selected sound task to review.</value></data>
+  <data name="RoleDashboard.Producer.Schedule" xml:space="preserve"><value>Schedule focus</value></data>
+  <data name="RoleDashboard.Producer.Schedule.Description" xml:space="preserve"><value>Default ordering emphasizes priority and planning pressure.</value></data>
+  <data name="RoleDashboard.Producer.Risks" xml:space="preserve"><value>Risk tracking</value></data>
+  <data name="RoleDashboard.Producer.Risks.Description" xml:space="preserve"><value>Producer fields capture milestone, risk and owner notes.</value></data>
+  <data name="RoleDashboard.Designer.Specs" xml:space="preserve"><value>Spec readiness</value></data>
+  <data name="RoleDashboard.Designer.Specs.Description" xml:space="preserve"><value>Designer fields capture feature area, spec links and acceptance notes.</value></data>
+  <data name="RoleDashboard.Designer.Validation" xml:space="preserve"><value>Validation</value></data>
+  <data name="RoleDashboard.Designer.Validation.Description" xml:space="preserve"><value>Actions help move work into review after design validation.</value></data>
+  <data name="RoleDashboard.Artist.Pipeline" xml:space="preserve"><value>Art pipeline</value></data>
+  <data name="RoleDashboard.Artist.Pipeline.Description" xml:space="preserve"><value>Asset tasks surface type, references and delivery paths.</value></data>
+  <data name="RoleDashboard.Artist.Deliverables" xml:space="preserve"><value>Deliverables</value></data>
+  <data name="RoleDashboard.Artist.Deliverables.Description" xml:space="preserve"><value>Default ordering highlights upcoming art delivery dates.</value></data>
+  <data name="RoleDashboard.Programmer.Implementation" xml:space="preserve"><value>Implementation</value></data>
+  <data name="RoleDashboard.Programmer.Implementation.Description" xml:space="preserve"><value>Programmer fields capture code area, branch and test plan.</value></data>
+  <data name="RoleDashboard.Programmer.Quality" xml:space="preserve"><value>Quality gate</value></data>
+  <data name="RoleDashboard.Programmer.Quality.Description" xml:space="preserve"><value>Actions move selected tasks through implementation and review.</value></data>
+  <data name="RoleDashboard.Sound.Cues" xml:space="preserve"><value>Sound cues</value></data>
+  <data name="RoleDashboard.Sound.Cues.Description" xml:space="preserve"><value>Sound fields capture cue names, mood and mix notes.</value></data>
+  <data name="RoleDashboard.Sound.Mix" xml:space="preserve"><value>Mix review</value></data>
+  <data name="RoleDashboard.Sound.Mix.Description" xml:space="preserve"><value>Default ordering highlights upcoming audio review work.</value></data>
+  <data name="Planning.Title" xml:space="preserve"><value>Planning</value></data>
+  <data name="Planning.Generate" xml:space="preserve"><value>Generate plan</value></data>
+  <data name="Planning.Prompt" xml:space="preserve"><value>Optional planning instructions</value></data>
+  <data name="Planning.Driver" xml:space="preserve"><value>Planning driver: {0}</value></data>
+  <data name="Planning.Suggestions" xml:space="preserve"><value>Suggestions</value></data>
+  <data name="Planning.Issues" xml:space="preserve"><value>Issues</value></data>
 </root>

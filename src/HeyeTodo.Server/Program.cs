@@ -1,6 +1,7 @@
 using System.Text;
 using HeyeTodo.Server.Api.Hubs;
 using HeyeTodo.Server.Application.Auth;
+using HeyeTodo.Server.Application.Planning;
 using HeyeTodo.Server.Application.Projects;
 using HeyeTodo.Server.Application.Sync;
 using HeyeTodo.Server.Application.Tasks;
@@ -19,6 +20,7 @@ builder.Configuration.AddUserSecrets<Program>(optional: true);
 
 // ─── Configuration ────────────────────────────────────────────
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
+builder.Services.Configure<ServerPlanningOptions>(builder.Configuration.GetSection("Planning:ServerProxy"));
 var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions
 {
     SigningKey = "REPLACE-ME-VIA-USER-SECRETS"
@@ -70,6 +72,8 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddHttpClient<IPlanningLlmDriver, ServerProxyLlmDriver>();
+builder.Services.AddScoped<IPlanningService, PlanningService>();
 builder.Services.AddScoped<ISyncService, SyncService>();
 
 // ─── Web layer ────────────────────────────────────────────────

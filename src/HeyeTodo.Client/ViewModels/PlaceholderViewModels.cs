@@ -12,13 +12,6 @@ using HeyeTodo.Shared.Enums;
 
 namespace HeyeTodo.Client.ViewModels;
 
-/// <summary>
-/// Placeholder for M4 (Gantt chart canvas).
-/// </summary>
-public sealed class GanttViewModel : ViewModelBase
-{
-}
-
 /// <summary>Coming-soon placeholder (M7).</summary>
 public sealed class MiniGamesHubViewModel : ViewModelBase
 {

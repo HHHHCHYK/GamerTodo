@@ -212,13 +212,13 @@ public sealed partial class TaskListViewModel : ViewModelBase
 
             if (SelectedProject is null)
             {
-            Tasks.Clear();
-            OnPropertyChanged(nameof(HasTasks));
-            OnPropertyChanged(nameof(ShowEmptyTasksMessage));
-            OnPropertyChanged(nameof(ShowTaskList));
-            ResetEditor();
-            ProjectName = string.Empty;
-            ProjectDescription = string.Empty;
+                Tasks.Clear();
+                OnPropertyChanged(nameof(HasTasks));
+                OnPropertyChanged(nameof(ShowEmptyTasksMessage));
+                OnPropertyChanged(nameof(ShowTaskList));
+                ResetEditor();
+                ProjectName = string.Empty;
+                ProjectDescription = string.Empty;
                 return;
             }
 
@@ -746,6 +746,7 @@ public sealed class TaskItemViewModel : ObservableObject
     public DateTimeOffset? StartDate { get; }
     public DateTimeOffset? EndDate { get; }
     public double? EstimatedHours { get; }
+    public string? RoleFieldsJson { get; }
     public string StatusLabel => LocalizationService.Instance[TaskStatusOption.KeyFor(Status)];
     public string PriorityLabel => LocalizationService.Instance[TaskPriorityOption.KeyFor(Priority)];
     public string ScheduleLabel => BuildScheduleLabel(StartDate, EndDate);
@@ -760,6 +761,7 @@ public sealed class TaskItemViewModel : ObservableObject
         StartDate = task.StartDate;
         EndDate = task.EndDate;
         EstimatedHours = task.EstimatedHours;
+        RoleFieldsJson = task.RoleFieldsJson;
     }
 
     private static string BuildScheduleLabel(DateTimeOffset? start, DateTimeOffset? end)
