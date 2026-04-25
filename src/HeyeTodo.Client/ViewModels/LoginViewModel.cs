@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using HeyeTodo.Client.Application.Sync;
 using HeyeTodo.Client.Infrastructure.Navigation;
 using HeyeTodo.Client.Infrastructure.Networking;
 using HeyeTodo.Shared.Enums;
@@ -10,6 +11,7 @@ namespace HeyeTodo.Client.ViewModels;
 public sealed partial class LoginViewModel : ViewModelBase
 {
     private readonly ApiClient _api;
+    private readonly ISyncCoordinator _sync;
     private readonly ClientSession _session;
     private readonly INavigationService _navigation;
 
@@ -18,9 +20,10 @@ public sealed partial class LoginViewModel : ViewModelBase
     [ObservableProperty] private string? _errorMessage;
     [ObservableProperty] private bool _isBusy;
 
-    public LoginViewModel(ApiClient api, ClientSession session, INavigationService navigation)
+    public LoginViewModel(ApiClient api, ISyncCoordinator sync, ClientSession session, INavigationService navigation)
     {
         _api = api;
+        _sync = sync;
         _session = session;
         _navigation = navigation;
     }
@@ -43,6 +46,7 @@ public sealed partial class LoginViewModel : ViewModelBase
             _session.DisplayName = r.User.DisplayName;
             _session.Roles = r.User.Roles;
             _session.ActiveRoleContext = r.User.ActiveRoleContext;
+            await _sync.StartAsync(r.User.Id);
 
             if (r.User.Roles == RoleType.None)
             {

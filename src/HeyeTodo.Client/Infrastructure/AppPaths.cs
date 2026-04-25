@@ -17,6 +17,7 @@ public static class AppPaths
     public static string TokenStorePath => Path.Combine(DataDirectory, "tokens.bin");
     public static string SettingsPath => Path.Combine(DataDirectory, "settings.json");
     public static string ClientIdPath => Path.Combine(DataDirectory, "client_id");
+    public static string SyncCursorPath => Path.Combine(DataDirectory, "sync.cursor.json");
 
     private static string ResolveDataDir()
     {

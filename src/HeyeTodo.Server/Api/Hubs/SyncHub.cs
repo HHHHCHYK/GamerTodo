@@ -11,6 +11,8 @@ namespace HeyeTodo.Server.Api.Hubs;
 [Authorize]
 public sealed class SyncHub : Hub
 {
+    public const string ProjectInvalidatedMethod = "ProjectInvalidated";
+
     public Task SubscribeProject(Guid projectId) =>
         Groups.AddToGroupAsync(Context.ConnectionId, GroupName(projectId));
 

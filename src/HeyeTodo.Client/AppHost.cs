@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Http;
 using HeyeTodo.Client.Application.Tasks;
+using HeyeTodo.Client.Application.Sync;
 using HeyeTodo.Client.Data;
 using HeyeTodo.Client.Data.Repositories;
 using HeyeTodo.Client.Infrastructure;
@@ -52,12 +53,17 @@ public static class AppHost
         });
         sc.AddTransient<ProjectApiClient>();
         sc.AddTransient<TaskApiClient>();
+        sc.AddSingleton<SyncCursorStore>();
+        sc.AddSingleton<SignalRSyncClient>();
+        sc.AddTransient<SyncApiClient>();
 
         // ─── Local DB ────────────────────────────────────────
         sc.AddDbContextFactory<LocalDbContext>(o =>
             o.UseSqlite($"Data Source={AppPaths.LocalDbPath}"));
         sc.AddTransient<IProjectRepository, LocalProjectRepository>();
         sc.AddTransient<ITaskRepository, LocalTaskRepository>();
+        sc.AddTransient<IDependencyRepository, LocalDependencyRepository>();
+        sc.AddSingleton<ISyncCoordinator, SyncCoordinator>();
         sc.AddTransient<ITaskWorkspaceService, TaskWorkspaceService>();
 
         // ─── ViewModels ──────────────────────────────────────

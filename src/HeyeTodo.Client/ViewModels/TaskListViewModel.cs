@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using HeyeTodo.Client.Application.Tasks;
+using HeyeTodo.Client.Application.Sync;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HeyeTodo.Client.Data.Entities;
@@ -20,6 +21,7 @@ namespace HeyeTodo.Client.ViewModels;
 public sealed partial class TaskListViewModel : ViewModelBase
 {
     private readonly ITaskWorkspaceService _workspace;
+    private readonly ISyncCoordinator _sync;
     private readonly ClientSession _session;
     private readonly Guid _clientId;
     private bool _reloadingSelection;
@@ -63,11 +65,13 @@ public sealed partial class TaskListViewModel : ViewModelBase
     public bool ShowEmptyTasksMessage => HasSelectedProject && !HasTasks;
     public bool ShowTaskList => HasSelectedProject && HasTasks;
 
-    public TaskListViewModel(ITaskWorkspaceService workspace)
+    public TaskListViewModel(ITaskWorkspaceService workspace, ISyncCoordinator sync)
     {
         _workspace = workspace;
+        _sync = sync;
         _session = AppHost.Services.GetRequiredService<ClientSession>();
         _clientId = AppPaths.GetOrCreateClientId();
+        _sync.ProjectInvalidated += OnProjectInvalidated;
 
         StatusFilters.Add(new TaskStatusOption(null, "Tasks.Filter.Status.All"));
         StatusFilters.Add(new TaskStatusOption(TaskStatus.Backlog, "Tasks.Status.Backlog"));
@@ -110,6 +114,7 @@ public sealed partial class TaskListViewModel : ViewModelBase
 
     partial void OnSelectedProjectChanged(ProjectItemViewModel? value)
     {
+        var previousProjectId = SelectedProject?.Id;
         OnPropertyChanged(nameof(HasSelectedProject));
         OnPropertyChanged(nameof(ShowNoProjectMessage));
         OnPropertyChanged(nameof(ShowEmptyTasksMessage));
@@ -122,6 +127,10 @@ public sealed partial class TaskListViewModel : ViewModelBase
         SelectedTask = null;
         if (value is null)
         {
+            if (previousProjectId is not null)
+            {
+                _ = _sync.UnsubscribeProjectAsync(previousProjectId.Value);
+            }
             Tasks.Clear();
             OnPropertyChanged(nameof(HasTasks));
             ResetEditor();
@@ -132,6 +141,11 @@ public sealed partial class TaskListViewModel : ViewModelBase
 
         ProjectName = value.Name;
         ProjectDescription = value.Description ?? string.Empty;
+        if (previousProjectId is not null && previousProjectId != value.Id)
+        {
+            _ = _sync.UnsubscribeProjectAsync(previousProjectId.Value);
+        }
+        _ = _sync.SubscribeProjectAsync(value.Id);
         ResetEditor();
         _ = LoadTasksAsync();
     }
@@ -226,6 +240,14 @@ public sealed partial class TaskListViewModel : ViewModelBase
     private async Task RefreshAsync()
     {
         await LoadAsync();
+    }
+
+    private void OnProjectInvalidated(Guid projectId)
+    {
+        if (SelectedProject?.Id == projectId)
+        {
+            _ = LoadTasksAsync(SelectedTask?.Id);
+        }
     }
 
     [RelayCommand]

@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Text.Json;
+using HeyeTodo.Client.Application.Sync;
 using HeyeTodo.Client.Data.Entities;
 using HeyeTodo.Client.Data.Repositories;
-using HeyeTodo.Client.Infrastructure.Networking;
 using HeyeTodo.Shared.Contracts.Tasks;
-using HeyeTodo.Shared.Sync;
 
 namespace HeyeTodo.Client.Application.Tasks;
 
@@ -13,19 +11,16 @@ public sealed class TaskWorkspaceService : ITaskWorkspaceService
 {
     private readonly IProjectRepository _projects;
     private readonly ITaskRepository _tasks;
-    private readonly ProjectApiClient _projectApi;
-    private readonly TaskApiClient _taskApi;
+    private readonly ISyncCoordinator _sync;
 
     public TaskWorkspaceService(
         IProjectRepository projects,
         ITaskRepository tasks,
-        ProjectApiClient projectApi,
-        TaskApiClient taskApi)
+        ISyncCoordinator sync)
     {
         _projects = projects;
         _tasks = tasks;
-        _projectApi = projectApi;
-        _taskApi = taskApi;
+        _sync = sync;
     }
 
     public Task<IReadOnlyList<LocalProject>> ListProjectsAsync(Guid ownerId, CancellationToken ct = default)
@@ -37,21 +32,10 @@ public sealed class TaskWorkspaceService : ITaskWorkspaceService
     public async Task<WorkspaceMutationResult<LocalProject>> CreateProjectAsync(Guid ownerId, CreateProjectRequest request, Guid clientId, CancellationToken ct = default)
     {
         var local = await _projects.CreateAsync(ownerId, request, clientId, ct);
-        try
-        {
-            var remote = await _projectApi.CreateProjectAsync(request, ct);
-            if (remote is null)
-            {
-                return new WorkspaceMutationResult<LocalProject>(local, false, "Remote sync failed.");
-            }
-
-            var updated = await _projects.UpdateSyncMetadataAsync(ownerId, local.Id, remote.Sync, ct) ?? local;
-            return new WorkspaceMutationResult<LocalProject>(updated, true);
-        }
-        catch
-        {
-            return new WorkspaceMutationResult<LocalProject>(local, false, "Remote sync failed.");
-        }
+        var sync = await _sync.SyncNowAsync(ownerId, ct);
+        var refreshed = await _projects.ListAsync(ownerId, ct);
+        var current = refreshed.FirstOrDefault(x => x.Id == local.Id) ?? local;
+        return new WorkspaceMutationResult<LocalProject>(current, sync.Succeeded, sync.Warning);
     }
 
     public async Task<WorkspaceMutationResult<LocalProject>?> UpdateProjectAsync(Guid ownerId, Guid projectId, UpdateProjectRequest request, Guid clientId, CancellationToken ct = default)
@@ -62,21 +46,10 @@ public sealed class TaskWorkspaceService : ITaskWorkspaceService
             return null;
         }
 
-        try
-        {
-            var remote = await _projectApi.UpdateProjectAsync(projectId, request with { Id = projectId }, ct);
-            if (remote is null)
-            {
-                return new WorkspaceMutationResult<LocalProject>(local, false, "Remote sync failed.");
-            }
-
-            var updated = await _projects.UpdateSyncMetadataAsync(ownerId, local.Id, remote.Sync, ct) ?? local;
-            return new WorkspaceMutationResult<LocalProject>(updated, true);
-        }
-        catch
-        {
-            return new WorkspaceMutationResult<LocalProject>(local, false, "Remote sync failed.");
-        }
+        var sync = await _sync.SyncNowAsync(ownerId, ct);
+        var refreshed = await _projects.ListAsync(ownerId, ct);
+        var current = refreshed.FirstOrDefault(x => x.Id == local.Id) ?? local;
+        return new WorkspaceMutationResult<LocalProject>(current, sync.Succeeded, sync.Warning);
     }
 
     public async Task<WorkspaceActionResult> DeleteProjectAsync(Guid ownerId, Guid projectId, Guid clientId, CancellationToken ct = default)
@@ -87,35 +60,16 @@ public sealed class TaskWorkspaceService : ITaskWorkspaceService
             return new WorkspaceActionResult(false, false);
         }
 
-        try
-        {
-            var remoteDeleted = await _projectApi.DeleteProjectAsync(projectId, ct);
-            return new WorkspaceActionResult(true, remoteDeleted, remoteDeleted ? null : "Remote sync failed.");
-        }
-        catch
-        {
-            return new WorkspaceActionResult(true, false, "Remote sync failed.");
-        }
+        var sync = await _sync.SyncNowAsync(ownerId, ct);
+        return new WorkspaceActionResult(true, sync.Succeeded, sync.Warning);
     }
 
     public async Task<WorkspaceMutationResult<LocalTask>> CreateTaskAsync(Guid ownerId, CreateTaskRequest request, Guid clientId, CancellationToken ct = default)
     {
         var local = await _tasks.CreateAsync(ownerId, request, clientId, ct);
-        try
-        {
-            var remote = await _taskApi.CreateTaskAsync(request, ct);
-            if (remote is null)
-            {
-                return new WorkspaceMutationResult<LocalTask>(local, false, "Remote sync failed.");
-            }
-
-            var updated = await _tasks.UpdateSyncMetadataAsync(ownerId, local.Id, remote.Sync, ct) ?? local;
-            return new WorkspaceMutationResult<LocalTask>(updated, true);
-        }
-        catch
-        {
-            return new WorkspaceMutationResult<LocalTask>(local, false, "Remote sync failed.");
-        }
+        var sync = await _sync.SyncNowAsync(ownerId, ct);
+        var refreshed = await _tasks.GetAsync(ownerId, local.Id, ct) ?? local;
+        return new WorkspaceMutationResult<LocalTask>(refreshed, sync.Succeeded, sync.Warning);
     }
 
     public async Task<WorkspaceMutationResult<LocalTask>?> UpdateTaskAsync(Guid ownerId, Guid taskId, UpdateTaskRequest request, Guid clientId, CancellationToken ct = default)
@@ -126,21 +80,9 @@ public sealed class TaskWorkspaceService : ITaskWorkspaceService
             return null;
         }
 
-        try
-        {
-            var remote = await _taskApi.UpdateTaskAsync(taskId, request with { Id = taskId }, ct);
-            if (remote is null)
-            {
-                return new WorkspaceMutationResult<LocalTask>(local, false, "Remote sync failed.");
-            }
-
-            var updated = await _tasks.UpdateSyncMetadataAsync(ownerId, local.Id, remote.Sync, ct) ?? local;
-            return new WorkspaceMutationResult<LocalTask>(updated, true);
-        }
-        catch
-        {
-            return new WorkspaceMutationResult<LocalTask>(local, false, "Remote sync failed.");
-        }
+        var sync = await _sync.SyncNowAsync(ownerId, ct);
+        var refreshed = await _tasks.GetAsync(ownerId, local.Id, ct) ?? local;
+        return new WorkspaceMutationResult<LocalTask>(refreshed, sync.Succeeded, sync.Warning);
     }
 
     public async Task<WorkspaceMutationResult<LocalTask>?> ChangeTaskStatusAsync(Guid ownerId, Guid taskId, ChangeTaskStatusRequest request, Guid clientId, CancellationToken ct = default)
@@ -151,21 +93,9 @@ public sealed class TaskWorkspaceService : ITaskWorkspaceService
             return null;
         }
 
-        try
-        {
-            var remote = await _taskApi.ChangeTaskStatusAsync(taskId, request with { Id = taskId }, ct);
-            if (remote is null)
-            {
-                return new WorkspaceMutationResult<LocalTask>(local, false, "Remote sync failed.");
-            }
-
-            var updated = await _tasks.UpdateSyncMetadataAsync(ownerId, local.Id, remote.Sync, ct) ?? local;
-            return new WorkspaceMutationResult<LocalTask>(updated, true);
-        }
-        catch
-        {
-            return new WorkspaceMutationResult<LocalTask>(local, false, "Remote sync failed.");
-        }
+        var sync = await _sync.SyncNowAsync(ownerId, ct);
+        var refreshed = await _tasks.GetAsync(ownerId, local.Id, ct) ?? local;
+        return new WorkspaceMutationResult<LocalTask>(refreshed, sync.Succeeded, sync.Warning);
     }
 
     public async Task<WorkspaceActionResult> DeleteTaskAsync(Guid ownerId, Guid taskId, Guid clientId, CancellationToken ct = default)
@@ -176,59 +106,14 @@ public sealed class TaskWorkspaceService : ITaskWorkspaceService
             return new WorkspaceActionResult(false, false);
         }
 
-        try
-        {
-            var remoteDeleted = await _taskApi.DeleteTaskAsync(taskId, ct);
-            return new WorkspaceActionResult(true, remoteDeleted, remoteDeleted ? null : "Remote sync failed.");
-        }
-        catch
-        {
-            return new WorkspaceActionResult(true, false, "Remote sync failed.");
-        }
+        var sync = await _sync.SyncNowAsync(ownerId, ct);
+        return new WorkspaceActionResult(true, sync.Succeeded, sync.Warning);
     }
 
     public async Task<WorkspaceRefreshResult> RefreshAsync(Guid ownerId, TaskListQuery query, CancellationToken ct = default)
     {
-        var syncedProjects = false;
-        var syncedTasks = false;
-        string? warning = null;
-
-        try
-        {
-            var remoteProjects = await _projectApi.GetProjectsAsync(ct);
-            if (remoteProjects is not null)
-            {
-                await _projects.UpsertFromRemoteAsync(ownerId, remoteProjects, ct);
-                syncedProjects = true;
-            }
-            else
-            {
-                warning = "Project refresh failed.";
-            }
-        }
-        catch
-        {
-            warning = "Project refresh failed.";
-        }
-
-        try
-        {
-            var remoteTasks = await _taskApi.GetTasksAsync(query, ct);
-            if (remoteTasks is not null)
-            {
-                await _tasks.UpsertFromRemoteAsync(ownerId, remoteTasks, ct);
-                syncedTasks = true;
-            }
-            else
-            {
-                warning = warning is null ? "Task refresh failed." : warning + " Task refresh failed.";
-            }
-        }
-        catch
-        {
-            warning = warning is null ? "Task refresh failed." : warning + " Task refresh failed.";
-        }
-
-        return new WorkspaceRefreshResult(syncedProjects, syncedTasks, warning);
+        _ = query;
+        var sync = await _sync.SyncNowAsync(ownerId, ct);
+        return new WorkspaceRefreshResult(sync.Succeeded, sync.Succeeded, sync.Warning);
     }
 }

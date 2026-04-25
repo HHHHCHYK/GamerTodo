@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using HeyeTodo.Client.Application.Sync;
 using HeyeTodo.Client.Infrastructure.Navigation;
 using HeyeTodo.Client.Infrastructure.Networking;
 using HeyeTodo.Shared.Contracts.Auth;
@@ -11,6 +12,7 @@ namespace HeyeTodo.Client.ViewModels;
 public sealed partial class RegisterViewModel : ViewModelBase
 {
     private readonly ApiClient _api;
+    private readonly ISyncCoordinator _sync;
     private readonly ClientSession _session;
     private readonly INavigationService _navigation;
 
@@ -20,9 +22,10 @@ public sealed partial class RegisterViewModel : ViewModelBase
     [ObservableProperty] private string? _errorMessage;
     [ObservableProperty] private bool _isBusy;
 
-    public RegisterViewModel(ApiClient api, ClientSession session, INavigationService navigation)
+    public RegisterViewModel(ApiClient api, ISyncCoordinator sync, ClientSession session, INavigationService navigation)
     {
         _api = api;
+        _sync = sync;
         _session = session;
         _navigation = navigation;
     }
@@ -42,6 +45,7 @@ public sealed partial class RegisterViewModel : ViewModelBase
             _session.DisplayName = r.User.DisplayName;
             _session.Roles = r.User.Roles;
             _session.ActiveRoleContext = r.User.ActiveRoleContext;
+            await _sync.StartAsync(r.User.Id);
 
             // New user → go to role selection (skippable).
             _navigation.NavigateTo<RoleSelectionViewModel>();

@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using HeyeTodo.Client.Application.Sync;
 using HeyeTodo.Client.Infrastructure;
 using HeyeTodo.Client.Infrastructure.Localization;
 using HeyeTodo.Client.Infrastructure.Navigation;
@@ -15,6 +16,7 @@ public sealed partial class ShellViewModel : ViewModelBase
 {
     private readonly ClientSession _session;
     private readonly ApiClient _api;
+    private readonly ISyncCoordinator _sync;
     private readonly INavigationService _navigation;
     private readonly IServiceProvider _services;
 
@@ -26,11 +28,13 @@ public sealed partial class ShellViewModel : ViewModelBase
     public ShellViewModel(
         ClientSession session,
         ApiClient api,
+        ISyncCoordinator sync,
         INavigationService navigation,
         IServiceProvider services)
     {
         _session = session;
         _api = api;
+        _sync = sync;
         _navigation = navigation;
         _services = services;
 
@@ -47,6 +51,10 @@ public sealed partial class ShellViewModel : ViewModelBase
         else
         {
             _session.IsAuthenticated = true;
+            if (_api.CurrentTokens is not null)
+            {
+                _ = _sync.StartAsync(_api.CurrentTokens.UserId);
+            }
             SelectedNav = NavItems[0];
         }
     }
@@ -60,6 +68,7 @@ public sealed partial class ShellViewModel : ViewModelBase
     [RelayCommand]
     private async Task Logout()
     {
+        await _sync.StopAsync();
         await _api.LogoutAsync();
         _session.Reset();
         _navigation.NavigateTo<LoginViewModel>();

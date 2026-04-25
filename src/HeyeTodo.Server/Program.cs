@@ -2,6 +2,7 @@ using System.Text;
 using HeyeTodo.Server.Api.Hubs;
 using HeyeTodo.Server.Application.Auth;
 using HeyeTodo.Server.Application.Projects;
+using HeyeTodo.Server.Application.Sync;
 using HeyeTodo.Server.Application.Tasks;
 using HeyeTodo.Server.Infrastructure.Auth;
 using HeyeTodo.Server.Infrastructure.Localization;
@@ -69,6 +70,7 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddScoped<ISyncService, SyncService>();
 
 // ─── Web layer ────────────────────────────────────────────────
 builder.Services.AddControllers();
