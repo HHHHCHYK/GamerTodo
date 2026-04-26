@@ -1,3 +1,4 @@
+using System.Net.Http;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -55,6 +56,10 @@ public sealed partial class LoginViewModel : ViewModelBase
             }
 
             _navigation.NavigateTo<ShellViewModel>();
+        }
+        catch (HttpRequestException)
+        {
+            ErrorMessage = "Cannot connect to server";
         }
         finally
         {

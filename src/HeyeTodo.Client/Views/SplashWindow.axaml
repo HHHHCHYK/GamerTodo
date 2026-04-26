@@ -9,18 +9,22 @@
         WindowDecorations="BorderOnly"
         Title="{loc:T Key=App.Title}">
 
-    <Border Padding="24">
+    <Border Background="{StaticResource CozyBgBrush}" Padding="28">
         <StackPanel VerticalAlignment="Center" Spacing="12">
-            <TextBlock Text="{loc:T Key=App.Title}" FontSize="26" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-            <TextBlock Text="{loc:T Key=App.Tagline}" HorizontalAlignment="Center" Opacity="0.65" TextWrapping="Wrap" TextAlignment="Center"/>
+            <TextBlock Text="★ HeyeTodo ★" FontSize="24" FontWeight="Bold"
+                       Foreground="{StaticResource CozyAccentBrush}" HorizontalAlignment="Center"/>
+            <TextBlock Text="{loc:T Key=App.Tagline}" HorizontalAlignment="Center"
+                       Foreground="{StaticResource CozyTextMutedBrush}"
+                       TextWrapping="Wrap" TextAlignment="Center" FontSize="12"/>
 
-            <ProgressBar IsIndeterminate="True" IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNull}}"/>
+            <ProgressBar IsIndeterminate="True"
+                         IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNull}}"/>
 
-            <TextBlock Text="{Binding Status}" HorizontalAlignment="Center" Opacity="0.8"/>
+            <TextBlock Text="{Binding Status}" HorizontalAlignment="Center"
+                       Foreground="{StaticResource CozyTextMutedBrush}" FontSize="12"/>
             <TextBlock Text="{Binding ErrorMessage}"
                        IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"
-                       TextWrapping="Wrap"
-                       Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}"/>
+                       TextWrapping="Wrap" Foreground="{StaticResource CozyErrorBrush}"/>
         </StackPanel>
     </Border>
 

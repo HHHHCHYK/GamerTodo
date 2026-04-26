@@ -8,23 +8,29 @@
              x:Class="HeyeTodo.Client.Views.LoginView"
              x:DataType="vm:LoginViewModel">
 
-    <Border MaxWidth="360" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24">
-        <StackPanel Spacing="14">
-            <TextBlock Text="{loc:T Key=App.Title}" FontSize="24" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-            <TextBlock Text="{loc:T Key=App.Tagline}" Opacity="0.6" HorizontalAlignment="Center" TextWrapping="Wrap"/>
+    <Border Background="{StaticResource CozyBgBrush}">
+        <Border MaxWidth="360" VerticalAlignment="Center" HorizontalAlignment="Center"
+                Padding="28" Background="{StaticResource CozyCardBrush}"
+                BorderBrush="{StaticResource CozyBorderBrush}" BorderThickness="2" CornerRadius="12">
+            <StackPanel Spacing="14">
+                <TextBlock Text="★ HeyeTodo ★" FontSize="22" FontWeight="Bold"
+                           Foreground="{StaticResource CozyAccentBrush}" HorizontalAlignment="Center"/>
+                <TextBlock Text="{loc:T Key=App.Tagline}" Foreground="{StaticResource CozyTextMutedBrush}"
+                           HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" FontSize="12"/>
 
-            <TextBox PlaceholderText="{loc:T Key=Auth.Email}" Text="{Binding Email}"/>
-            <TextBox PlaceholderText="{loc:T Key=Auth.Password}" Text="{Binding Password}" PasswordChar="*"/>
+                <TextBox PlaceholderText="{loc:T Key=Auth.Email}" Text="{Binding Email}"/>
+                <TextBox PlaceholderText="{loc:T Key=Auth.Password}" Text="{Binding Password}" PasswordChar="*"/>
 
-            <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}"
-                       IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource CozyErrorBrush}"
+                           IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
 
-            <Button Content="{loc:T Key=Auth.Login}" Command="{Binding LoginCommand}"
-                    IsEnabled="{Binding !IsBusy}" HorizontalAlignment="Stretch" Classes="accent"/>
+                <Button Content="{loc:T Key=Auth.Login}" Command="{Binding LoginCommand}"
+                        IsEnabled="{Binding !IsBusy}" HorizontalAlignment="Stretch" Classes="accent"/>
 
-            <Button Content="{loc:T Key=Auth.Register}" Command="{Binding GoToRegisterCommand}"
-                    HorizontalAlignment="Stretch"/>
-        </StackPanel>
+                <Button Content="{loc:T Key=Auth.Register}" Command="{Binding GoToRegisterCommand}"
+                        HorizontalAlignment="Stretch"/>
+            </StackPanel>
+        </Border>
     </Border>
 
 </UserControl>

@@ -5,15 +5,20 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
-              x:Class="HeyeTodo.Client.Views.TaskListView"
-              x:DataType="vm:TaskListViewModel">
+             x:Class="HeyeTodo.Client.Views.TaskListView"
+             x:DataType="vm:TaskListViewModel">
 
-    <Grid RowDefinitions="Auto,*" ColumnDefinitions="2*,1.1*" RowSpacing="16" ColumnSpacing="16">
-        <Border Grid.Row="0" Grid.ColumnSpan="2" Padding="16" Background="{DynamicResource SystemRegionBrush}">
-            <StackPanel Spacing="12">
-                <TextBlock Text="{loc:T Key=Nav.Tasks}" FontSize="24" FontWeight="SemiBold"/>
+    <Grid RowDefinitions="Auto,*" ColumnDefinitions="2*,1.1*" RowSpacing="12" ColumnSpacing="12">
 
-                <Grid ColumnDefinitions="2*,Auto,2*,Auto,Auto,Auto" ColumnSpacing="12">
+        <!-- Top toolbar card -->
+        <Border Grid.Row="0" Grid.ColumnSpan="2" Padding="16"
+                Background="{StaticResource CozyCardBrush}"
+                BorderBrush="{StaticResource CozyBorderBrush}" BorderThickness="2" CornerRadius="10">
+            <StackPanel Spacing="10">
+                <TextBlock Text="{loc:T Key=Nav.Tasks}" FontSize="22" FontWeight="Bold"
+                           Foreground="{StaticResource CozyTextBrush}"/>
+
+                <Grid ColumnDefinitions="2*,Auto,2*,Auto,Auto,Auto" ColumnSpacing="8">
                     <ComboBox Grid.Column="0" ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate x:DataType="vm:ProjectItemViewModel">
@@ -41,7 +46,7 @@
                             IsEnabled="{Binding HasSelectedProject}" Classes="accent"/>
                 </Grid>
 
-                <Grid ColumnDefinitions="2*,2*,Auto,Auto,Auto" ColumnSpacing="12">
+                <Grid ColumnDefinitions="2*,2*,Auto,Auto,Auto" ColumnSpacing="8">
                     <TextBox Grid.Column="0" Text="{Binding ProjectName}" PlaceholderText="{loc:T Key=Projects.Name}"/>
                     <TextBox Grid.Column="1" Text="{Binding ProjectDescription}" PlaceholderText="{loc:T Key=Projects.Description}"/>
                     <CheckBox Grid.Column="2" Content="{loc:T Key=Tasks.IncludeCompleted}" IsChecked="{Binding IncludeCompleted}" VerticalAlignment="Center"/>
@@ -49,41 +54,67 @@
                     <Button Grid.Column="4" Content="{loc:T Key=Tasks.SaveProject}" Command="{Binding SaveProjectCommand}" IsEnabled="{Binding HasSelectedProject}"/>
                 </Grid>
 
-                <Button Content="{loc:T Key=Tasks.DeleteProject}" Command="{Binding DeleteProjectCommand}" HorizontalAlignment="Right"
-                        IsEnabled="{Binding HasSelectedProject}"/>
+                <Button Content="{loc:T Key=Tasks.DeleteProject}" Command="{Binding DeleteProjectCommand}"
+                        HorizontalAlignment="Right" IsEnabled="{Binding HasSelectedProject}"/>
 
-                <TextBlock Text="{Binding StatusMessage}" Foreground="DarkGreen"
+                <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource CozySuccessBrush}"
                            IsVisible="{Binding StatusMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}"
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource CozyErrorBrush}"
                            IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
             </StackPanel>
         </Border>
 
-        <Border Grid.Row="1" Grid.Column="0" Padding="12" Background="{DynamicResource SystemRegionBrush}">
+        <!-- Task list card -->
+        <Border Grid.Row="1" Grid.Column="0" Padding="14"
+                Background="{StaticResource CozyCardBrush}"
+                BorderBrush="{StaticResource CozyBorderBrush}" BorderThickness="2" CornerRadius="10">
             <Grid RowDefinitions="Auto,*">
                 <StackPanel Spacing="4">
-                    <TextBlock Text="{loc:T Key=Tasks.List}" FontSize="18" FontWeight="SemiBold"/>
-                    <TextBlock Text="{loc:T Key=Tasks.NoProject}" Opacity="0.7" IsVisible="{Binding ShowNoProjectMessage}"/>
-                    <TextBlock Text="{loc:T Key=Tasks.Empty}" Opacity="0.7" IsVisible="{Binding ShowEmptyTasksMessage}"/>
+                    <TextBlock Text="{loc:T Key=Tasks.List}" FontSize="16" FontWeight="Bold"
+                               Foreground="{StaticResource CozyTextBrush}"/>
+                    <TextBlock Text="{loc:T Key=Tasks.NoProject}" Foreground="{StaticResource CozyTextMutedBrush}"
+                               IsVisible="{Binding ShowNoProjectMessage}"/>
+                    <TextBlock Text="{loc:T Key=Tasks.Empty}" Foreground="{StaticResource CozyTextMutedBrush}"
+                               IsVisible="{Binding ShowEmptyTasksMessage}"/>
                 </StackPanel>
 
-                <ListBox Grid.Row="1" Margin="0,12,0,0" ItemsSource="{Binding Tasks}" SelectedItem="{Binding SelectedTask}"
-                         IsVisible="{Binding ShowTaskList}">
+                <ListBox Grid.Row="1" Margin="0,10,0,0" ItemsSource="{Binding Tasks}"
+                         SelectedItem="{Binding SelectedTask}" IsVisible="{Binding ShowTaskList}">
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:TaskItemViewModel">
-                            <Border Padding="12" Margin="0,0,0,8" Background="Transparent">
-                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="12">
-                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold"/>
-                                    <Button Grid.Column="1" Content="{loc:T Key=Tasks.NextStatus}"
-                                            Command="{Binding $parent[UserControl].DataContext.AdvanceTaskStatusCommand}" CommandParameter="{Binding}"/>
+                            <Border Padding="10" Margin="0,0,0,6"
+                                    Background="{StaticResource CozyBgBrush}"
+                                    BorderBrush="{StaticResource CozyBorderBrush}"
+                                    BorderThickness="0,0,0,2" CornerRadius="8">
+                                <Grid ColumnDefinitions="4,*,Auto" RowDefinitions="Auto,Auto,Auto"
+                                      RowSpacing="4" ColumnSpacing="10">
+                                    <Border Grid.Column="0" Grid.RowSpan="3" Width="4" CornerRadius="2"
+                                            Background="{StaticResource CozyAccentBrush}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Title}" FontWeight="SemiBold"
+                                               Foreground="{StaticResource CozyTextBrush}"/>
+                                    <Button Grid.Column="2" Content="{loc:T Key=Tasks.NextStatus}"
+                                            Command="{Binding $parent[UserControl].DataContext.AdvanceTaskStatusCommand}"
+                                            CommandParameter="{Binding}"/>
 
-                                    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8">
-                                        <TextBlock Text="{Binding StatusLabel}" Opacity="0.8"/>
-                                        <TextBlock Text="{Binding PriorityLabel}" Opacity="0.8"/>
-                                        <TextBlock Text="{Binding ScheduleLabel}" Opacity="0.6"/>
+                                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                                        <Border Background="{StaticResource CozyListSelectedBrush}"
+                                                CornerRadius="4" Padding="6,2">
+                                            <TextBlock Text="{Binding StatusLabel}" FontSize="11"
+                                                       Foreground="{StaticResource CozyTextBrush}"/>
+                                        </Border>
+                                        <Border Background="{StaticResource CozyMintBrush}"
+                                                CornerRadius="4" Padding="6,2">
+                                            <TextBlock Text="{Binding PriorityLabel}" FontSize="11"
+                                                       Foreground="{StaticResource CozyTextBrush}"/>
+                                        </Border>
+                                        <TextBlock Text="{Binding ScheduleLabel}" FontSize="11"
+                                                   Foreground="{StaticResource CozyTextMutedBrush}"
+                                                   VerticalAlignment="Center"/>
                                     </StackPanel>
 
-                                    <TextBlock Grid.Row="2" Text="{Binding Description}" Opacity="0.7" TextWrapping="Wrap"
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Description}"
+                                               Foreground="{StaticResource CozyTextMutedBrush}"
+                                               FontSize="12" TextWrapping="Wrap"
                                                IsVisible="{Binding Description, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                                 </Grid>
                             </Border>
@@ -93,16 +124,22 @@
             </Grid>
         </Border>
 
-        <Border Grid.Row="1" Grid.Column="1" Padding="16" Background="{DynamicResource SystemRegionBrush}">
-            <StackPanel Spacing="12">
-                <TextBlock Text="{loc:T Key=Tasks.Editor}" FontSize="18" FontWeight="SemiBold"/>
-                <TextBlock Text="{loc:T Key=Tasks.EditorEmpty}" Opacity="0.7" IsVisible="{Binding !ShowEditorForm}"/>
+        <!-- Editor card -->
+        <Border Grid.Row="1" Grid.Column="1" Padding="16"
+                Background="{StaticResource CozyCardBrush}"
+                BorderBrush="{StaticResource CozyBorderBrush}" BorderThickness="2" CornerRadius="10">
+            <StackPanel Spacing="10">
+                <TextBlock Text="{loc:T Key=Tasks.Editor}" FontSize="16" FontWeight="Bold"
+                           Foreground="{StaticResource CozyTextBrush}"/>
+                <TextBlock Text="{loc:T Key=Tasks.EditorEmpty}" Foreground="{StaticResource CozyTextMutedBrush}"
+                           IsVisible="{Binding !ShowEditorForm}"/>
 
                 <StackPanel Spacing="8" IsVisible="{Binding ShowEditorForm}">
                     <TextBox Text="{Binding EditTitle}" PlaceholderText="{loc:T Key=Tasks.Editor.Title}"/>
-                    <TextBox Text="{Binding EditDescription}" PlaceholderText="{loc:T Key=Tasks.Editor.Description}" AcceptsReturn="True" MinHeight="80"/>
+                    <TextBox Text="{Binding EditDescription}" PlaceholderText="{loc:T Key=Tasks.Editor.Description}"
+                             AcceptsReturn="True" MinHeight="80"/>
 
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
                         <ComboBox Grid.Column="0" ItemsSource="{Binding EditorStatuses}" SelectedItem="{Binding EditStatus}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate x:DataType="vm:TaskStatusOption">
@@ -119,14 +156,14 @@
                         </ComboBox>
                     </Grid>
 
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
                         <TextBox Grid.Column="0" Text="{Binding EditStartDate}" PlaceholderText="{loc:T Key=Tasks.Editor.StartDate}"/>
                         <TextBox Grid.Column="1" Text="{Binding EditEndDate}" PlaceholderText="{loc:T Key=Tasks.Editor.EndDate}"/>
                     </Grid>
 
                     <TextBox Text="{Binding EditEstimatedHours}" PlaceholderText="{loc:T Key=Tasks.Editor.EstimatedHours}"/>
 
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="12">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
                         <Button Content="{loc:T Key=Common.Cancel}" Command="{Binding CancelEditCommand}"/>
                         <Button Content="{loc:T Key=Tasks.Delete}" Command="{Binding DeleteTaskCommand}" IsEnabled="{Binding HasSelectedTask}"/>
                         <Button Content="{loc:T Key=Common.Save}" Command="{Binding SaveTaskCommand}" Classes="accent"/>

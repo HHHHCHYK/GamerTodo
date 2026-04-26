@@ -11,27 +11,28 @@
     <Grid ColumnDefinitions="220,*">
 
         <!-- Sidebar -->
-        <Border Grid.Column="0" Background="{DynamicResource SystemRegionBrush}" Padding="12">
+        <Border Grid.Column="0" Background="{StaticResource CozySidebarBrush}" Padding="14">
             <DockPanel>
-                <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,16">
-                    <TextBlock Text="{loc:T Key=App.Title}" FontSize="18" FontWeight="SemiBold"/>
-                    <TextBlock Text="{loc:T Key=App.Tagline}" Opacity="0.6" TextWrapping="Wrap" FontSize="12"/>
+                <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="0,0,0,20">
+                    <TextBlock Text="✦ HeyeTodo ✦" FontSize="16" FontWeight="Bold"
+                               Foreground="{StaticResource CozyAccentBrush}" HorizontalAlignment="Center"/>
+                    <TextBlock Text="{loc:T Key=App.Tagline}" Foreground="{StaticResource CozyTextMutedBrush}"
+                               TextWrapping="Wrap" FontSize="11" HorizontalAlignment="Center" TextAlignment="Center"/>
                 </StackPanel>
 
-                <Button DockPanel.Dock="Bottom" Command="{Binding LogoutCommand}" HorizontalAlignment="Stretch" Margin="0,8,0,0">
+                <Button DockPanel.Dock="Bottom" Command="{Binding LogoutCommand}"
+                        HorizontalAlignment="Stretch" Margin="0,8,0,0">
                     Logout
                 </Button>
 
-                <ListBox ItemsSource="{Binding NavItems}"
-                         SelectedItem="{Binding SelectedNav}"
-                         Background="Transparent"
-                         BorderThickness="0">
+                <ListBox ItemsSource="{Binding NavItems}" SelectedItem="{Binding SelectedNav}">
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:NavItem">
-                            <StackPanel Orientation="Horizontal" Spacing="10" Height="32">
-                                <PathIcon Data="{Binding IconPathData}" Width="18" Height="18" VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding Label}"
-                                           VerticalAlignment="Center"/>
+                            <StackPanel Orientation="Horizontal" Spacing="10" Height="34">
+                                <PathIcon Data="{Binding IconPathData}" Width="16" Height="16"
+                                          VerticalAlignment="Center" Foreground="{StaticResource CozyAccentBrush}"/>
+                                <TextBlock Text="{Binding Label}" VerticalAlignment="Center"
+                                           Foreground="{StaticResource CozyTextBrush}"/>
                             </StackPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
@@ -40,7 +41,9 @@
         </Border>
 
         <!-- Content -->
-        <ContentControl Grid.Column="1" Content="{Binding Content}" Margin="16"/>
+        <Border Grid.Column="1" Background="{StaticResource CozyBgBrush}" Padding="16">
+            <ContentControl Content="{Binding Content}"/>
+        </Border>
     </Grid>
 
 </UserControl>

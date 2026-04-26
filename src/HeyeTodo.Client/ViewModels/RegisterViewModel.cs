@@ -1,3 +1,4 @@
+using System.Net.Http;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -49,6 +50,10 @@ public sealed partial class RegisterViewModel : ViewModelBase
 
             // New user → go to role selection (skippable).
             _navigation.NavigateTo<RoleSelectionViewModel>();
+        }
+        catch (HttpRequestException)
+        {
+            ErrorMessage = "Cannot connect to server";
         }
         finally
         {

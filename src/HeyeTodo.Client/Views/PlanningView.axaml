@@ -7,11 +7,15 @@
              mc:Ignorable="d"
              x:Class="HeyeTodo.Client.Views.PlanningView"
              x:DataType="vm:PlanningViewModel">
-    <Grid RowDefinitions="Auto,*" RowSpacing="16">
-        <Border Padding="16" Background="{DynamicResource SystemRegionBrush}">
-            <StackPanel Spacing="12">
-                <TextBlock Text="{loc:T Key=Planning.Title}" FontSize="24" FontWeight="SemiBold"/>
-                <Grid ColumnDefinitions="2*,Auto,Auto" ColumnSpacing="12">
+    <Grid RowDefinitions="Auto,*" RowSpacing="12">
+
+        <!-- Top card -->
+        <Border Padding="16" Background="{StaticResource CozyCardBrush}"
+                BorderBrush="{StaticResource CozyBorderBrush}" BorderThickness="2" CornerRadius="10">
+            <StackPanel Spacing="10">
+                <TextBlock Text="{loc:T Key=Planning.Title}" FontSize="22" FontWeight="Bold"
+                           Foreground="{StaticResource CozyTextBrush}"/>
+                <Grid ColumnDefinitions="2*,Auto,Auto" ColumnSpacing="8">
                     <ComboBox Grid.Column="0" ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate x:DataType="vm:ProjectItemViewModel">
@@ -22,27 +26,46 @@
                     <Button Grid.Column="1" Content="{loc:T Key=Tasks.Refresh}" Command="{Binding RefreshCommand}"/>
                     <Button Grid.Column="2" Content="{loc:T Key=Planning.Generate}" Command="{Binding GenerateCommand}" Classes="accent"/>
                 </Grid>
-                <TextBox Text="{Binding Prompt}" PlaceholderText="{loc:T Key=Planning.Prompt}" AcceptsReturn="True" MinHeight="72"/>
-                <TextBlock Text="{Binding DriverLabel}" Opacity="0.75"/>
-                <TextBlock Text="{Binding Summary}" Foreground="DarkGreen" IsVisible="{Binding Summary, Converter={x:Static ObjectConverters.IsNotNull}}"/>
-                <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                <TextBox Text="{Binding Prompt}" PlaceholderText="{loc:T Key=Planning.Prompt}"
+                         AcceptsReturn="True" MinHeight="72"/>
+                <TextBlock Text="{Binding DriverLabel}" Foreground="{StaticResource CozyTextMutedBrush}" FontSize="12"/>
+                <TextBlock Text="{Binding Summary}" Foreground="{StaticResource CozySuccessBrush}"
+                           IsVisible="{Binding Summary, Converter={x:Static ObjectConverters.IsNotNull}}"/>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource CozyErrorBrush}"
+                           IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
             </StackPanel>
         </Border>
 
-        <Grid Grid.Row="1" ColumnDefinitions="2*,*" ColumnSpacing="16">
-            <Border Padding="16" Background="{DynamicResource SystemRegionBrush}">
-                <Grid RowDefinitions="Auto,*" RowSpacing="12">
-                    <TextBlock Text="{loc:T Key=Planning.Suggestions}" FontSize="18" FontWeight="SemiBold"/>
+        <Grid Grid.Row="1" ColumnDefinitions="2*,*" ColumnSpacing="12">
+
+            <!-- Suggestions card -->
+            <Border Padding="16" Background="{StaticResource CozyCardBrush}"
+                    BorderBrush="{StaticResource CozyBorderBrush}" BorderThickness="2" CornerRadius="10">
+                <Grid RowDefinitions="Auto,*" RowSpacing="10">
+                    <TextBlock Text="{loc:T Key=Planning.Suggestions}" FontSize="16" FontWeight="Bold"
+                               Foreground="{StaticResource CozyTextBrush}"/>
                     <ListBox Grid.Row="1" ItemsSource="{Binding Suggestions}">
                         <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="vm:PlanningSuggestionViewModel">
-                                <Border Padding="12" Margin="0,0,0,8" Background="Transparent">
-                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                                        <TextBlock Text="{Binding Rank}" FontSize="20" FontWeight="SemiBold"/>
-                                        <StackPanel Grid.Column="1" Spacing="4">
-                                            <TextBlock Text="{Binding DateRange}" FontWeight="SemiBold"/>
-                                            <TextBlock Text="{Binding Reason}" Opacity="0.75" TextWrapping="Wrap"/>
-                                            <TextBlock Text="{Binding Score}" Opacity="0.55"/>
+                                <Border Padding="10" Margin="0,0,0,6"
+                                        Background="{StaticResource CozyBgBrush}"
+                                        BorderBrush="{StaticResource CozyBorderBrush}"
+                                        BorderThickness="2" CornerRadius="8">
+                                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                        <Border Background="{StaticResource CozyAccentBrush}"
+                                                CornerRadius="6" Width="32" Height="32">
+                                            <TextBlock Text="{Binding Rank}" FontSize="16" FontWeight="Bold"
+                                                       Foreground="White" HorizontalAlignment="Center"
+                                                       VerticalAlignment="Center"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="1" Spacing="3">
+                                            <TextBlock Text="{Binding DateRange}" FontWeight="SemiBold"
+                                                       Foreground="{StaticResource CozyTextBrush}"/>
+                                            <TextBlock Text="{Binding Reason}" FontSize="12"
+                                                       Foreground="{StaticResource CozyTextMutedBrush}"
+                                                       TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding Score}" FontSize="11"
+                                                       Foreground="{StaticResource CozyTextMutedBrush}"/>
                                         </StackPanel>
                                     </Grid>
                                 </Border>
@@ -52,16 +75,25 @@
                 </Grid>
             </Border>
 
-            <Border Grid.Column="1" Padding="16" Background="{DynamicResource SystemRegionBrush}">
-                <Grid RowDefinitions="Auto,*" RowSpacing="12">
-                    <TextBlock Text="{loc:T Key=Planning.Issues}" FontSize="18" FontWeight="SemiBold"/>
+            <!-- Issues card -->
+            <Border Grid.Column="1" Padding="16" Background="{StaticResource CozyCardBrush}"
+                    BorderBrush="{StaticResource CozyBorderBrush}" BorderThickness="2" CornerRadius="10">
+                <Grid RowDefinitions="Auto,*" RowSpacing="10">
+                    <TextBlock Text="{loc:T Key=Planning.Issues}" FontSize="16" FontWeight="Bold"
+                               Foreground="{StaticResource CozyTextBrush}"/>
                     <ItemsControl Grid.Row="1" ItemsSource="{Binding Issues}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:PlanningIssueViewModel">
-                                <Border Padding="12" Margin="0,0,0,8" Background="{DynamicResource SystemChromeLowColor}">
-                                    <StackPanel Spacing="4">
-                                        <TextBlock Text="{Binding Code}" FontWeight="SemiBold"/>
-                                        <TextBlock Text="{Binding Message}" Opacity="0.75" TextWrapping="Wrap"/>
+                                <Border Padding="10" Margin="0,0,0,6"
+                                        Background="{StaticResource CozyBgBrush}"
+                                        BorderBrush="{StaticResource CozyWarning}"
+                                        BorderThickness="0,0,0,2" CornerRadius="8">
+                                    <StackPanel Spacing="3">
+                                        <TextBlock Text="{Binding Code}" FontWeight="SemiBold"
+                                                   Foreground="{StaticResource CozyTextBrush}"/>
+                                        <TextBlock Text="{Binding Message}" FontSize="12"
+                                                   Foreground="{StaticResource CozyTextMutedBrush}"
+                                                   TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </Border>
                             </DataTemplate>
