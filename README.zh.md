@@ -1,6 +1,6 @@
-# HeyeTodo
+# 黑夜待办 (HeyeTodo)
 
-专为**独立游戏开发者**打造的跨平台待办事项与项目管理应用。
+专为**独立游戏开发者**设计的待办事项与项目管理工具。跨平台、本地优先，围绕游戏团队的实际工作方式打造。
 
 > Also available in: [English](README.md)
 
@@ -12,18 +12,141 @@
 | 本地存储 | SQLite（本地优先） |
 | 认证 | JWT（访问令牌 + 刷新令牌） |
 
-## 功能特性（MVP）
+## 功能特性
 
-- 多用户注册与登录，多设备同步
-- 本地优先架构：完整离线支持，冲突感知同步
-- 任务增删改查，支持**列表视图**和**甘特图视图**（共享同一数据模型）
-- 用户可选角色：制作人 / 设计师 / 美术 / 程序员 / 音效设计师
-  - 可选零个、一个或多个角色，界面随角色自适应调整
-- 按优先级与依赖关系自动排序
-  - 基于规则的引擎（拓扑排序 + 优先级权重）
-  - 可选 LLM 辅助（服务端代理模式 / 客户端密钥模式）
-- 小游戏区（MVP 中为占位入口，功能保留）
-- 双语界面（中文 / 英文），自动跟随系统语言
+- **多用户实时同步** — 注册一次，在任何设备登录，任务自动同步。SignalR 实时推送变更，团队成员始终保持一致。
+- **本地优先，随时可用** — 所有数据存储在本地 SQLite 中。离线照常工作，恢复网络后自动同步。
+- **列表视图** — 经典的筛选、排序、搜索任务管理。创建项目，添加带优先级和日期的任务，沿着完整状态管道推进（积压 → 待办 → 进行中 → 阻塞 → 评审中 → 已完成 / 已取消）。
+- **甘特图视图** — 在时间轴上直观查看项目进度。拖拽任务调整日期，缩放时间轴，可视化任务依赖关系。
+- **角色面板** — 选择你的角色（制作人 / 策划 / 美术 / 程序 / 音效设计师），界面随之调整。每个角色都有专属字段、动作和仪表盘组件。
+- **智能规划** — 基于规则的引擎，根据优先级和依赖链自动排序。可选接入 LLM（服务端代理或自带 API Key）获取 AI 辅助规划建议。
+- **小游戏区** — 预留的放松小游戏入口（后续版本开放）。
+- **双语界面** — 自动跟随系统语言，也可在设置中手动切换。
+
+## 下载与安装
+
+从 [GitHub Releases](https://github.com/your-org/HeyeTodo/releases) 获取最新版本。
+
+| 平台 | 安装包 | 说明 |
+|---|---|---|
+| Windows | `HeyeTodo-client-win-x64-<version>.zip` | 绿色版 — 解压即用 |
+| Windows | `HeyeTodo-client-win-x64-<version>.msix` | MSIX 安装包 |
+| macOS | `HeyeTodo-osx-arm64-<version>.dmg` | 拖入 Applications 即可 |
+
+macOS 下载后可能需要清除隔离属性：
+
+```bash
+xattr -d com.apple.quarantine /Applications/HeyeTodo.app
+```
+
+> 黑夜待办搭配服务端使用效果最佳。你可以连接团队搭建的共享服务端，也可以[自行部署](#自托管部署)。如果只是试用，客户端也可以指向 `http://localhost:5254`，同时在本机运行服务端。
+
+## 使用指南
+
+### 首次启动
+
+打开黑夜待办后，首先看到登录界面。你有两种选择：
+
+- **注册** — 填入邮箱和密码，设置一个显示名称，即可开始使用。
+- **登录** — 如果已有账号，直接登录即可。
+
+首次登录后，应用会询问你在项目中承担哪些角色：
+
+- 制作人
+- 策划
+- 美术
+- 程序
+- 音效设计师
+
+可以不选、选一个或多个，之后随时在设置中修改。你的角色选择决定了应用中显示的面板和字段。
+
+### 侧边栏
+
+进入主界面后，左侧边栏提供了所有功能入口：
+
+| 栏目 | 功能 |
+|---|---|
+| **任务** | 列表视图，创建和管理任务 |
+| **甘特图** | 时间轴视图，查看项目排期 |
+| **角色面板** | 角色专属的仪表盘、字段和动作 |
+| **规划** | 自动排序与 AI 辅助规划 |
+| **小游戏** | 放松角落（暂为占位入口） |
+| **设置** | 语言、服务器地址、角色、规划模式 |
+
+### 管理任务
+
+**任务**视图是你的日常指挥中心。
+
+- **先创建项目** — 所有任务都归属于一个项目。点击「新建项目」，填写名称和可选描述，保存即可。
+- **添加任务** — 从下拉菜单选择项目，点击「新建任务」。填写标题、可选的描述、开始/结束日期、预估工时、优先级和状态。
+- **推进状态** — 点击任意任务的「下一状态」，沿管道推进：积压 → 待办 → 进行中 → 阻塞 → 评审中 → 已完成（或已取消）。
+- **筛选与排序** — 按状态或优先级筛选。按最近更新、优先级、标题或状态排序。
+- **搜索** — 使用搜索框按关键词查找任务。
+- **包含已完成** — 切换是否显示已完成和已取消的任务。
+
+> 任务先在本地保存，再同步到服务端。离线时会看到"已保存到本地"的提示 — 恢复网络后会自动同步。
+
+### 甘特图
+
+切换到**甘特图**视图，在时间轴上纵览项目。
+
+- 从下拉菜单选择项目，点击**刷新**。
+- 每个任务以横条显示在时间轴上，位置由开始和结束日期决定。
+- **依赖线**连接有依赖关系的任务。
+- 使用 **+ / −** 按钮缩放时间轴。
+- 直接拖拽任务条调整日期。
+
+> 列表视图和甘特图共享同一数据 — 在任一视图中做出的修改都会立即反映到另一个视图中。
+
+### 角色面板
+
+**角色面板**根据你选择的角色自动适配。如果还没选择角色，请先去设置中启用。
+
+每个活跃角色有三个标签页：
+
+- **仪表盘** — 概览你的角色最关注的信息。
+- **角色动作** — 一键操作，推动任务流转（例如，程序可以「开始实现」或「请求代码评审」）。
+- **角色字段** — 挂载到任务上的专业元数据。
+
+| 角色 | 专属字段示例 |
+|---|---|
+| 制作人 | 里程碑、风险、负责人备注 |
+| 策划 | 功能区域、设计文档链接、验收说明 |
+| 美术 | 资源类型、参考资料、交付路径 |
+| 程序 | 代码区域、分支或 PR、测试计划 |
+| 音效设计师 | 音频 Cue、情绪、混音备注 |
+
+在顶栏选择项目和任务后，即可编辑角色专属字段并执行角色动作。
+
+### 规划
+
+**规划**视图帮助你理清下一步该做什么。
+
+默认情况下，黑夜待办使用**基于规则的引擎**，通过拓扑排序（尊重依赖关系）结合优先级权重来自动排序。该模式可离线工作，无需任何配置。
+
+你也可以在设置中启用 AI 辅助规划：
+
+- **服务端 AI** — 服务端处理 LLM 调用，你无需提供 API Key。
+- **客户端 API Key** — 使用你自己的 OpenAI 兼容 API Key，自主控制接口和模型。
+
+无论哪种模式，你都可以输入可选的规划指令（例如"优先处理战斗系统相关任务"），然后生成计划。应用会展示规划建议和检测到的问题。
+
+### 设置
+
+从侧边栏底部进入设置。
+
+- **语言** — 跟随系统、强制英文或强制中文。
+- **服务器地址** — 将客户端指向团队服务端，默认为 `http://localhost:5254`。
+- **角色** — 随时增删角色，界面即时更新。
+- **规划模式** — 在仅规则、服务端 AI 和客户端 API Key 之间切换。
+- **退出登录** — 位于设置页面底部。
+
+## 架构亮点
+
+- **本地优先** — SQLite 是权威数据源，在线离线都有完整数据。
+- **冲突感知同步** — 采用发件箱/收件箱模型，LWW（最后写入胜出）冲突解决。
+- **角色驱动 UI** — 界面根据所选角色展示相关字段和动作。
+- **原生双语** — 所有字符串存放在 `.resx` 文件中，包含中文和英文变体。
 
 ## 仓库结构
 
@@ -31,149 +154,35 @@
 HeyeTodo/
 ├── src/
 │   ├── HeyeTodo.Shared/    共享 DTO、枚举、契约
-│   ├── HeyeTodo.Server/    ASP.NET Core 后端（Api / Application / Domain / Infrastructure）
+│   ├── HeyeTodo.Server/    ASP.NET Core 后端
 │   └── HeyeTodo.Client/    Avalonia 桌面客户端
-├── deploy/                 Docker / 部署资产
-├── scripts/                辅助脚本（macOS 签名占位等）
+├── deploy/                 Docker Compose 与部署资产
+├── artifacts/scripts/      构建与打包脚本
 └── HeyeTodo.sln
 ```
 
-## 开发环境快速上手
+## 开发环境
 
-### 前置依赖
-
-- .NET SDK 10.x
-- Docker Desktop（通过 `deploy/docker-compose.yml` 运行 PostgreSQL）
-- `dotnet-ef` 本地工具 — 执行 `dotnet tool restore` 安装
-
-### 启动服务端
-
-```bash
-dotnet tool restore
-dotnet user-secrets --project src/HeyeTodo.Server set "Jwt:SigningKey" "<你的随机32字节以上密钥>"
-cd deploy
-docker compose up -d postgres
-cd ../src/HeyeTodo.Server
-dotnet run
-```
-
-在 PowerShell 中生成随机签名密钥：
-
-```powershell
-$key = [Convert]::ToBase64String((1..48 | ForEach-Object { [byte](Get-Random -Max 256) }))
-dotnet user-secrets --project src/HeyeTodo.Server set "Jwt:SigningKey" $key
-```
-
-手动执行数据库迁移（如需）：
-
-```bash
-dotnet dotnet-ef database update \
-  --project src/HeyeTodo.Server/HeyeTodo.Server.csproj \
-  --startup-project src/HeyeTodo.Server/HeyeTodo.Server.csproj
-```
-
-开发模式下，交互式 API 文档（Scalar）地址：`http://localhost:5254/scalar/v1`
-
-### 启动客户端
-
-```bash
-cd src/HeyeTodo.Client
-dotnet run
-```
-
-## 打包发布
-
-构建脚本位于 `artifacts/scripts/`（里程碑 M8 新增）。
-
-### Windows — 便携 zip
-
-```powershell
-pwsh ./artifacts/scripts/publish-windows.ps1 -Version 0.1.0
-```
-
-输出：
-
-| 路径 | 说明 |
-|------|------|
-| `artifacts/releases/client-win-x64` | 自包含发布目录 |
-| `artifacts/releases/HeyeTodo-client-win-x64-<version>.zip` | 便携 zip 包 |
-
-> MVP 阶段包未签名。
-
-### Windows — MSIX
-
-```powershell
-pwsh ./artifacts/scripts/publish-windows-msix.ps1 -Version 0.1.0
-```
-
-要求：Windows SDK 的 `makeappx.exe` 需在 `PATH` 中可用。
-
-输出：`artifacts/releases/HeyeTodo-client-win-x64-<version>.msix`（未签名）
-
-> 如需广泛分发，请在发布前单独完成签名。
-
-### macOS — 应用包与 dmg
-
-在 macOS 上执行：
-
-```bash
-bash ./artifacts/scripts/publish-macos.sh Release osx-arm64 0.1.0
-```
-
-输出：
-
-| 路径 | 说明 |
-|------|------|
-| `artifacts/releases/HeyeTodo.app` | 应用包 |
-| `artifacts/releases/HeyeTodo-osx-arm64-<version>.dmg` | 磁盘镜像 |
-
-若 `hdiutil` 不可用，脚本仍会生成 `.app` 包，跳过 dmg 创建。
-
-由于 MVP 包未签名，macOS 下载后可能触发隔离。首次启动前清除隔离属性：
-
-```bash
-xattr -d com.apple.quarantine /Applications/HeyeTodo.app
-```
-
-签名集成占位点位于 `scripts/mac/sign.sh`。
-
-## 里程碑
-
-完整里程碑计划（M0 至 M8）请参阅 [`docs/ROADMAP.md`](docs/ROADMAP.md)。
+详细的开发环境搭建说明请参阅 [AGENTS.md](.agents/README.md)。
 
 ## 自托管部署
 
-HeyeTodo 优先支持自托管部署。
+黑夜待办优先支持自托管部署。
 
-### 最低环境要求
+### 快速开始
 
-- Docker Engine 或 Docker Desktop
-- 指向 API 容器的主机名或反向代理入口
-- 至少 32 字节的随机 JWT 签名密钥
-- PostgreSQL 数据的持久化存储卷
-
-### 快速启动
-
-1. 编辑 `deploy/docker-compose.yml`，替换默认 JWT 签名密钥。
-2. 将 `Cors__AllowedOrigins__0`（如需可添加更多条目）设置为桌面客户端实际使用的 Origin。
+1. 编辑 `deploy/docker-compose.yml`，替换默认 JWT 签名密钥（至少 32 字节随机字符串）。
+2. 将 `Cors__AllowedOrigins__0` 设置为桌面客户端实际使用的 Origin。
 3. 在 `deploy/` 目录下执行 `docker compose up -d`。
-4. 确认服务端可通过 `http://localhost:8080` 或反向代理访问。
-5. 在桌面客户端的**设置**中，将服务器基础 URL 指向你的服务端地址。
+4. 服务端将在 `http://localhost:8080` 可用。
+5. 在桌面客户端中打开**设置**，将服务器地址指向你的服务端。
 
-### 手动数据库迁移
+服务端启动时会自动执行 EF Core 数据库迁移。
 
-服务端启动时会自动执行 EF Core 迁移。如需手动执行：
-
-```bash
-dotnet dotnet-ef database update \
-  --project ../src/HeyeTodo.Server/HeyeTodo.Server.csproj \
-  --startup-project ../src/HeyeTodo.Server/HeyeTodo.Server.csproj
-```
-
-### 环境变量说明
+### 环境变量
 
 | 变量 | 说明 |
-|------|------|
+|---|---|
 | `ASPNETCORE_ENVIRONMENT` | `Production` 或 `Development` |
 | `ASPNETCORE_URLS` | 服务端监听地址 |
 | `ConnectionStrings__Default` | PostgreSQL 连接字符串 |
@@ -185,11 +194,11 @@ dotnet dotnet-ef database update \
 | `Cors__AllowedOrigins__0` | 第一个允许的 CORS 来源 |
 | `Cors__AllowedOrigins__1` | 第二个允许的 CORS 来源（可选） |
 
-### 反向代理说明
+### 反向代理
 
 将 API 置于 Nginx、Caddy、Traefik 等反向代理后时：
 
-- 将 HTTP 流量转发至容器的 `8080` 端口
+- 将 HTTP 流量转发至容器 `8080` 端口
 - 为 `/ws/sync` 路径保留 WebSocket 升级支持
 - 确保外部 Origin 与 `Cors__AllowedOrigins__*` 保持一致
 - 生产环境建议在代理层终止 TLS
@@ -201,7 +210,7 @@ dotnet dotnet-ef database update \
 - PostgreSQL 数据卷 `heyetodo-postgres-dev-data`
 - 部署配置值，尤其是 JWT 签名密钥和 CORS 设置
 
-恢复操作前请先停止服务栈，避免替换数据库文件或还原 Docker 卷快照时造成数据损坏。
+恢复操作前请先停止服务栈，避免数据损坏。
 
 ## 参与贡献
 

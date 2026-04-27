@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: heyetodo
       POSTGRES_PASSWORD: heyetodo
     ports:
-      - "55432:5432"
+      - "0427:5432"
     volumes:
       - heyetodo-postgres-dev-data:/var/lib/postgresql/data
     healthcheck:

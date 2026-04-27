@@ -9,7 +9,7 @@ echo [1/3] Stopping local Server processes on port %SERVER_PORT%...
 call :StopPortProcess %SERVER_PORT%
 
 echo [2/3] Stopping local Client processes...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'HeyeTodo.Client' -and $_.CommandLine -match 'dotnet' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-CimInstance Win32_Process | Where-Object { $_.Name -in @('dotnet.exe', 'HeyeTodo.Client.exe') -and ($_.CommandLine -match 'HeyeTodo\.Client' -or $_.CommandLine -match [regex]::Escape('%ROOT%src\HeyeTodo.Client')) } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }"
 if errorlevel 1 (
     echo Failed to stop one or more Client processes.
     exit /b 1

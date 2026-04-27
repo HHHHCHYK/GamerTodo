@@ -5,7 +5,7 @@ set "ROOT=%~dp0"
 set "COMPOSE_FILE=%ROOT%deploy\docker-compose.yml"
 set "SERVER_DIR=%ROOT%src\HeyeTodo.Server"
 set "CLIENT_DIR=%ROOT%src\HeyeTodo.Client"
-set "POSTGRES_PORT=55432"
+set "POSTGRES_PORT=0427"
 set "SERVER_PORT=5254"
 
 where docker >nul 2>nul
@@ -74,7 +74,7 @@ if errorlevel 1 (
     echo HeyeTodo Client is already running. Skipping Client startup.
 ) else (
     echo Starting Client...
-    start "HeyeTodo Client" cmd /k cd /d "%CLIENT_DIR%" ^&^& dotnet run
+    start "HeyeTodo Client" cmd /k cd /d "%CLIENT_DIR%" ^&^& dotnet run --project "%CLIENT_DIR%\HeyeTodo.Client.csproj"
 )
 
 echo.
@@ -93,7 +93,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "if (Get-NetTCPConnection
 exit /b %errorlevel%
 
 :IsClientRunning
-powershell -NoProfile -ExecutionPolicy Bypass -Command "if (Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match 'HeyeTodo.Client' -and $_.CommandLine -match 'dotnet' }) { exit 1 } else { exit 0 }"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$client = Get-CimInstance Win32_Process | Where-Object { $_.Name -in @('dotnet.exe', 'HeyeTodo.Client.exe') -and ($_.CommandLine -match 'HeyeTodo\.Client' -or $_.CommandLine -match [regex]::Escape('%CLIENT_DIR%')) }; if ($client) { exit 1 } else { exit 0 }"
 exit /b %errorlevel%
 
 :EnsurePortFree

@@ -6,7 +6,7 @@ ROOT="$SCRIPT_DIR"
 COMPOSE_FILE="$ROOT/deploy/docker-compose.yml"
 SERVER_DIR="$ROOT/src/HeyeTodo.Server"
 CLIENT_DIR="$ROOT/src/HeyeTodo.Client"
-POSTGRES_PORT=55432
+POSTGRES_PORT=0427
 SERVER_PORT=5254
 AVALONIA_BUILD_DIR="$HOME/Library/Application Support/AvaloniaUI/BuildServices"
 
@@ -25,7 +25,7 @@ is_port_listening() {
 }
 
 is_client_running() {
-    pgrep -f "dotnet.*HeyeTodo.Client" &>/dev/null || pgrep -f "HeyeTodo.Client.dll" &>/dev/null
+    ps -axo comm=,args= | awk '$1 ~ /(^|\/)dotnet$/ && $0 ~ /HeyeTodo\.Client/ { found = 1 } END { exit found ? 0 : 1 }'
 }
 
 open_terminal_command() {
@@ -127,7 +127,7 @@ print_step 7 "Starting Client"
 if is_client_running; then
     echo "HeyeTodo Client is already running. Skipping Client startup."
 else
-    open_terminal_command "HeyeTodo Client" "$CLIENT_DIR" "dotnet run"
+    open_terminal_command "HeyeTodo Client" "$CLIENT_DIR" "dotnet run --project '$CLIENT_DIR/HeyeTodo.Client.csproj'"
 fi
 
 echo ""

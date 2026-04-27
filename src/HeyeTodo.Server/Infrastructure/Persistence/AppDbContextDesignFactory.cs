@@ -19,7 +19,7 @@ public sealed class AppDbContextDesignFactory : IDesignTimeDbContextFactory<AppD
             .Build();
 
         var cs = config.GetConnectionString("Default")
-                 ?? "Host=localhost;Port=55432;Database=heyetodo;Username=heyetodo;Password=heyetodo";
+                 ?? "Host=localhost;Port=0427;Database=heyetodo;Username=heyetodo;Password=heyetodo";
 
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseNpgsql(cs)

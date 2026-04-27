@@ -32,7 +32,7 @@ var allowedOrigins = builder.Configuration
 
 // ─── EF Core / Postgres ───────────────────────────────────────
 var cs = builder.Configuration.GetConnectionString("Default")
-         ?? "Host=localhost;Port=55432;Database=heyetodo;Username=heyetodo;Password=heyetodo";
+         ?? "Host=localhost;Port=0427;Database=heyetodo;Username=heyetodo;Password=heyetodo";
 builder.Services.AddDbContext<AppDbContext>(o => o.UseNpgsql(cs));
 
 // ─── Auth ─────────────────────────────────────────────────────

@@ -97,6 +97,16 @@ public sealed class ApiClient
     /// <summary>Send an authenticated request; refresh + retry once on 401.</summary>
     public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct = default)
     {
+        if (request.RequestUri is null)
+        {
+            throw new InvalidOperationException("Request URI is required.");
+        }
+
+        if (!request.RequestUri.IsAbsoluteUri)
+        {
+            request.RequestUri = BuildUri(request.RequestUri.ToString());
+        }
+
         Attach(request);
         var resp = await _http.SendAsync(request, ct);
         if (resp.StatusCode != System.Net.HttpStatusCode.Unauthorized) return resp;
