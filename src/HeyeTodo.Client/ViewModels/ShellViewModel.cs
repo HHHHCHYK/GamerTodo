@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -6,6 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using HeyeTodo.Client.Application.Sync;
 using HeyeTodo.Client.Infrastructure;
 using HeyeTodo.Client.Infrastructure.Localization;
+using HeyeTodo.Client.Infrastructure.Logging;
 using HeyeTodo.Client.Infrastructure.Navigation;
 using HeyeTodo.Client.Infrastructure.Networking;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +21,7 @@ public sealed partial class ShellViewModel : ViewModelBase
     private readonly ISyncCoordinator _sync;
     private readonly INavigationService _navigation;
     private readonly IServiceProvider _services;
+    private readonly IClientLogger _logger;
 
     [ObservableProperty] private ViewModelBase? _content;
     [ObservableProperty] private NavItem? _selectedNav;
@@ -30,13 +33,15 @@ public sealed partial class ShellViewModel : ViewModelBase
         ApiClient api,
         ISyncCoordinator sync,
         INavigationService navigation,
-        IServiceProvider services)
+        IServiceProvider services,
+        IClientLogger logger)
     {
         _session = session;
         _api = api;
         _sync = sync;
         _navigation = navigation;
         _services = services;
+        _logger = logger;
 
         NavItems.Add(new NavItem("Nav.Tasks", "M4 6H16V8H4z M4 10H16V12H4z M4 14H16V16H4z M2 6H3.5V8H2z M2 10H3.5V12H2z M2 14H3.5V16H2z", typeof(TaskListViewModel)));
         NavItems.Add(new NavItem("Nav.Gantt", "M2 15H18V17H2z M3 11H7V14H3z M8 7H12V14H8z M13 4H17V14H13z", typeof(GanttViewModel)));
@@ -63,17 +68,42 @@ public sealed partial class ShellViewModel : ViewModelBase
 
     partial void OnSelectedNavChanged(NavItem? value)
     {
+        NavigateTo(value);
+    }
+
+    [RelayCommand]
+    private void SelectNav(NavItem? value)
+    {
+        SelectedNav = value;
+    }
+
+    private void NavigateTo(NavItem? value)
+    {
         if (value is null) return;
         Content = (ViewModelBase)_services.GetRequiredService(value.ViewModelType);
+        _ = _logger.LogOperationAsync("Shell", "Navigate", ClientLogLevel.Information, "Shell content changed.", new Dictionary<string, object?>
+        {
+            ["viewModel"] = value.ViewModelType.Name,
+            ["labelKey"] = value.LabelKey,
+        });
     }
 
     [RelayCommand]
     private async Task Logout()
     {
-        await _sync.StopAsync();
-        await _api.LogoutAsync();
-        _session.Reset();
-        _navigation.NavigateTo<LoginViewModel>();
+        try
+        {
+            await _sync.StopAsync();
+            await _api.LogoutAsync();
+            _session.Reset();
+            await _logger.LogOperationAsync("Shell", "Logout", ClientLogLevel.Information, "Logout completed.");
+            _navigation.NavigateTo<LoginViewModel>();
+        }
+        catch (Exception ex)
+        {
+            await _logger.LogUserOperationExceptionAsync("Logout", ex);
+            throw;
+        }
     }
 }
 

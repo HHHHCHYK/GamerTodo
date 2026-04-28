@@ -1,9 +1,11 @@
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HeyeTodo.Client.Infrastructure;
 using HeyeTodo.Client.Infrastructure.Localization;
+using HeyeTodo.Client.Infrastructure.Logging;
 using HeyeTodo.Client.Infrastructure.Navigation;
 using HeyeTodo.Client.Infrastructure.Networking;
 using HeyeTodo.Shared.Contracts.Auth;
@@ -17,6 +19,7 @@ public sealed partial class RoleSelectionViewModel : ViewModelBase
     private readonly ISettingsService _settings;
     private readonly ClientSession _session;
     private readonly INavigationService _navigation;
+    private readonly IClientLogger _logger;
 
     [ObservableProperty] private string? _errorMessage;
     [ObservableProperty] private bool _isBusy;
@@ -30,12 +33,13 @@ public sealed partial class RoleSelectionViewModel : ViewModelBase
         new RoleOption(RoleType.SoundDesigner, "Roles.SoundDesigner"),
     };
 
-    public RoleSelectionViewModel(ApiClient api, ISettingsService settings, ClientSession session, INavigationService navigation)
+    public RoleSelectionViewModel(ApiClient api, ISettingsService settings, ClientSession session, INavigationService navigation, IClientLogger logger)
     {
         _api = api;
         _settings = settings;
         _session = session;
         _navigation = navigation;
+        _logger = logger;
         // Pre-check options that are already saved.
         foreach (var o in Options)
         {
@@ -59,6 +63,10 @@ public sealed partial class RoleSelectionViewModel : ViewModelBase
             if (updated is null)
             {
                 ErrorMessage = LocalizationService.Instance["RoleSelection.SaveFailed"];
+                await _logger.LogOperationAsync("RoleSelection", "Continue", ClientLogLevel.Warning, "Role selection save failed.", new Dictionary<string, object?>
+                {
+                    ["roles"] = combined,
+                });
                 return;
             }
 
@@ -66,7 +74,20 @@ public sealed partial class RoleSelectionViewModel : ViewModelBase
 
             _session.Roles = updated.Roles;
             _session.ActiveRoleContext = updated.ActiveRoleContext;
+            await _logger.LogOperationAsync("RoleSelection", "Continue", ClientLogLevel.Information, "Role selection saved.", new Dictionary<string, object?>
+            {
+                ["roles"] = updated.Roles,
+                ["activeRoleContext"] = updated.ActiveRoleContext,
+            });
             _navigation.NavigateTo<ShellViewModel>();
+        }
+        catch (System.Exception ex)
+        {
+            ErrorMessage = LocalizationService.Instance["RoleSelection.SaveFailed"];
+            await _logger.LogUserOperationExceptionAsync("RoleSelectionContinue", ex, new Dictionary<string, object?>
+            {
+                ["roles"] = combined,
+            });
         }
         finally
         {
@@ -75,9 +96,9 @@ public sealed partial class RoleSelectionViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void Skip()
+    private async Task Skip()
     {
-        // User skipped; roles remain None. Can be edited later from Settings.
+        await _logger.LogOperationAsync("RoleSelection", "Skip", ClientLogLevel.Information, "Role selection skipped.");
         _navigation.NavigateTo<ShellViewModel>();
     }
 }

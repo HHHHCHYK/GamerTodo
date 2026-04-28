@@ -10,9 +10,11 @@ using HeyeTodo.Client.Data.Repositories;
 using HeyeTodo.Client.Infrastructure;
 using HeyeTodo.Client.Infrastructure.Auth;
 using HeyeTodo.Client.Infrastructure.Localization;
+using HeyeTodo.Client.Infrastructure.Logging;
 using HeyeTodo.Client.Infrastructure.Navigation;
 using HeyeTodo.Client.Infrastructure.Networking;
 using HeyeTodo.Client.ViewModels;
+using HeyeTodo.Client.Views;
 using HeyeTodo.Shared.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,6 +41,7 @@ public static class AppHost
         sc.AddSingleton<ISettingsService, SettingsService>();
         sc.AddSingleton(new TokenStore(AppPaths.TokenStorePath));
         sc.AddSingleton<ClientSession>();
+        sc.AddSingleton<IClientLogger, FileClientLogger>();
         sc.AddSingleton<INavigationService, NavigationService>();
 
         // ─── HttpClient + ApiClient ──────────────────────────
@@ -50,7 +53,7 @@ public static class AppHost
         {
             var factory = sp.GetRequiredService<IHttpClientFactory>();
             var http = factory.CreateClient("api");
-            return new ApiClient(http, sp.GetRequiredService<TokenStore>(), sp.GetRequiredService<ISettingsService>(), clientId);
+            return new ApiClient(http, sp.GetRequiredService<TokenStore>(), sp.GetRequiredService<ISettingsService>(), sp.GetRequiredService<IClientLogger>(), clientId);
         });
         sc.AddTransient<ProjectApiClient>();
         sc.AddTransient<TaskApiClient>();
@@ -74,6 +77,7 @@ public static class AppHost
         sc.AddSingleton<IPlanningApplicationService, PlanningApplicationService>();
 
         // ─── ViewModels ──────────────────────────────────────
+        sc.AddSingleton<MainWindow>();
         sc.AddSingleton<MainWindowViewModel>();
         sc.AddTransient<ShellViewModel>();
         sc.AddTransient<LoginViewModel>();
@@ -101,10 +105,61 @@ public static class AppHost
         {
             using var scope = Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<IDbContextFactory<LocalDbContext>>().CreateDbContext();
+            var logger = scope.ServiceProvider.GetRequiredService<IClientLogger>();
+            logger.LogInfoAsync("Client started.").GetAwaiter().GetResult();
             db.Database.EnsureCreated();
+            EnsureLocalSyncSchema(db);
         }, ct);
 
         splash.Status = LocalizationService.Instance["Splash.Ready"];
+    }
+
+    private static void EnsureLocalSyncSchema(LocalDbContext db)
+    {
+        db.Database.ExecuteSqlRaw("""
+            CREATE TABLE IF NOT EXISTS "Outbox" (
+                "Id" TEXT NOT NULL CONSTRAINT "PK_Outbox" PRIMARY KEY,
+                "OwnerId" TEXT NOT NULL,
+                "EntityType" INTEGER NOT NULL,
+                "Operation" INTEGER NOT NULL,
+                "EntityId" TEXT NOT NULL,
+                "PayloadJson" TEXT NOT NULL,
+                "UpdatedAt" TEXT NOT NULL,
+                "UpdatedBy" TEXT NOT NULL,
+                "ClientId" TEXT NOT NULL,
+                "EnqueuedAt" TEXT NOT NULL,
+                "AcknowledgedAt" TEXT NULL,
+                "ConflictReason" TEXT NULL
+            );
+            """);
+        db.Database.ExecuteSqlRaw("""
+            CREATE INDEX IF NOT EXISTS "IX_Outbox_OwnerId_AcknowledgedAt" ON "Outbox" ("OwnerId", "AcknowledgedAt");
+            """);
+        db.Database.ExecuteSqlRaw("""
+            CREATE INDEX IF NOT EXISTS "IX_Outbox_OwnerId_EntityType_EntityId" ON "Outbox" ("OwnerId", "EntityType", "EntityId");
+            """);
+        db.Database.ExecuteSqlRaw("""
+            CREATE TABLE IF NOT EXISTS "Inbox" (
+                "Id" TEXT NOT NULL CONSTRAINT "PK_Inbox" PRIMARY KEY,
+                "OwnerId" TEXT NOT NULL,
+                "EntityType" INTEGER NOT NULL,
+                "Operation" INTEGER NOT NULL,
+                "EntityId" TEXT NOT NULL,
+                "ServerVersion" INTEGER NOT NULL,
+                "PayloadJson" TEXT NOT NULL,
+                "UpdatedAt" TEXT NOT NULL,
+                "UpdatedBy" TEXT NOT NULL,
+                "ClientId" TEXT NOT NULL,
+                "ReceivedAt" TEXT NOT NULL,
+                "AppliedAt" TEXT NULL
+            );
+            """);
+        db.Database.ExecuteSqlRaw("""
+            CREATE INDEX IF NOT EXISTS "IX_Inbox_OwnerId_ServerVersion" ON "Inbox" ("OwnerId", "ServerVersion");
+            """);
+        db.Database.ExecuteSqlRaw("""
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_Inbox_OwnerId_EntityType_EntityId_ServerVersion" ON "Inbox" ("OwnerId", "EntityType", "EntityId", "ServerVersion");
+            """);
     }
 }
 

@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using HeyeTodo.Client.Data;
 using HeyeTodo.Client.Data.Entities;
+using HeyeTodo.Client.Infrastructure.Logging;
 using HeyeTodo.Shared.Contracts.Sync;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,10 +10,12 @@ namespace HeyeTodo.Client.Application.Sync;
 public sealed class SyncInboxStore
 {
     private readonly IDbContextFactory<LocalDbContext> _dbFactory;
+    private readonly IClientLogger _logger;
 
-    public SyncInboxStore(IDbContextFactory<LocalDbContext> dbFactory)
+    public SyncInboxStore(IDbContextFactory<LocalDbContext> dbFactory, IClientLogger logger)
     {
         _dbFactory = dbFactory;
+        _logger = logger;
     }
 
     public async Task RecordReceivedAsync(Guid ownerId, IReadOnlyList<SyncChange> changes, CancellationToken ct = default)
@@ -22,6 +26,7 @@ public sealed class SyncInboxStore
         }
 
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var addedCount = 0;
         foreach (var change in changes)
         {
             var serverVersion = ExtractServerVersion(change);
@@ -48,9 +53,16 @@ public sealed class SyncInboxStore
                 UpdatedBy = change.UpdatedBy,
                 ClientId = change.ClientId,
             });
+            addedCount++;
         }
 
         await db.SaveChangesAsync(ct);
+        await _logger.LogSyncOperationAsync("InboxRecordReceived", ClientLogLevel.Information, "Inbox changes recorded.", new Dictionary<string, object?>
+        {
+            ["ownerId"] = ownerId,
+            ["receivedCount"] = changes.Count,
+            ["addedCount"] = addedCount,
+        }, ct: ct);
     }
 
     public async Task MarkAppliedAsync(Guid ownerId, IReadOnlyList<SyncChange> changes, CancellationToken ct = default)
@@ -62,6 +74,7 @@ public sealed class SyncInboxStore
 
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
         var now = DateTimeOffset.UtcNow;
+        var markedCount = 0;
         foreach (var change in changes)
         {
             var serverVersion = ExtractServerVersion(change);
@@ -74,10 +87,17 @@ public sealed class SyncInboxStore
             if (item is not null)
             {
                 item.AppliedAt = now;
+                markedCount++;
             }
         }
 
         await db.SaveChangesAsync(ct);
+        await _logger.LogSyncOperationAsync("InboxMarkApplied", ClientLogLevel.Information, "Inbox changes marked as applied.", new Dictionary<string, object?>
+        {
+            ["ownerId"] = ownerId,
+            ["requestedCount"] = changes.Count,
+            ["markedCount"] = markedCount,
+        }, ct: ct);
     }
 
     private static long ExtractServerVersion(SyncChange change)

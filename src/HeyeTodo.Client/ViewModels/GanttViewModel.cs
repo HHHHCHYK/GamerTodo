@@ -12,6 +12,7 @@ using HeyeTodo.Client.Application.Tasks;
 using HeyeTodo.Client.Data.Entities;
 using HeyeTodo.Client.Infrastructure;
 using HeyeTodo.Client.Infrastructure.Localization;
+using HeyeTodo.Client.Infrastructure.Logging;
 using HeyeTodo.Shared.Enums;
 using Microsoft.Extensions.DependencyInjection;
 using TaskStatus = HeyeTodo.Shared.Enums.TaskStatus;
@@ -29,6 +30,7 @@ public sealed partial class GanttViewModel : ViewModelBase
 
     private readonly ITaskWorkspaceService _workspace;
     private readonly ISyncCoordinator _sync;
+    private readonly IClientLogger _logger;
     private readonly ClientSession _session;
     private readonly Guid _clientId;
     private bool _reloadingSelection;
@@ -60,10 +62,11 @@ public sealed partial class GanttViewModel : ViewModelBase
     public bool ShowEmptyTasksMessage => HasSelectedProject && !HasTasks;
     public bool ShowGantt => HasSelectedProject && HasTasks;
 
-    public GanttViewModel(ITaskWorkspaceService workspace, ISyncCoordinator sync)
+    public GanttViewModel(ITaskWorkspaceService workspace, ISyncCoordinator sync, IClientLogger logger)
     {
         _workspace = workspace;
         _sync = sync;
+        _logger = logger;
         _session = AppHost.Services.GetRequiredService<ClientSession>();
         _clientId = AppPaths.GetOrCreateClientId();
         _sync.ProjectInvalidated += OnProjectInvalidated;
@@ -135,10 +138,21 @@ public sealed partial class GanttViewModel : ViewModelBase
 
             await _sync.SubscribeProjectAsync(SelectedProject.Id);
             await LoadGanttAsync();
+            await _logger.LogOperationAsync("Gantt", "Load", ClientLogLevel.Information, "Gantt workspace loaded.", new Dictionary<string, object?>
+            {
+                ["projectId"] = SelectedProject.Id,
+                ["projectCount"] = Projects.Count,
+                ["taskCount"] = Tasks.Count,
+                ["dependencyCount"] = Dependencies.Count,
+            });
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             ErrorMessage = LocalizationService.Instance["Tasks.Error.LoadFailed"];
+            await _logger.LogUserOperationExceptionAsync("GanttLoad", ex, new Dictionary<string, object?>
+            {
+                ["selectedProjectId"] = SelectedProject?.Id,
+            });
         }
         finally
         {
@@ -213,14 +227,29 @@ public sealed partial class GanttViewModel : ViewModelBase
             }
 
             await LoadGanttAsync(taskId);
+            await _logger.LogOperationAsync("Gantt", "RescheduleTask", ClientLogLevel.Information, "Task rescheduled from gantt.", new Dictionary<string, object?>
+            {
+                ["taskId"] = taskId,
+                ["projectId"] = SelectedProject?.Id,
+                ["startDeltaDays"] = startDeltaDays,
+                ["endDeltaDays"] = endDeltaDays,
+                ["synced"] = updated.Synced,
+            });
             if (!updated.Synced)
             {
                 StatusMessage = LocalizationService.Instance["Tasks.Warning.LocalOnly"];
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             ErrorMessage = LocalizationService.Instance["Tasks.Error.TaskSaveFailed"];
+            await _logger.LogUserOperationExceptionAsync("GanttRescheduleTask", ex, new Dictionary<string, object?>
+            {
+                ["taskId"] = taskId,
+                ["projectId"] = SelectedProject?.Id,
+                ["startDeltaPixels"] = startDeltaPixels,
+                ["endDeltaPixels"] = endDeltaPixels,
+            });
         }
         finally
         {

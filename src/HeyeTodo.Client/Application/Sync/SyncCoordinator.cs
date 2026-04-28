@@ -1,5 +1,6 @@
 using System.Text.Json;
 using HeyeTodo.Client.Infrastructure;
+using HeyeTodo.Client.Infrastructure.Logging;
 using HeyeTodo.Client.Data;
 using HeyeTodo.Client.Data.Entities;
 using HeyeTodo.Client.Data.Repositories;
@@ -23,6 +24,7 @@ public sealed class SyncCoordinator : ISyncCoordinator
     private readonly SyncOutboxStore _outboxStore;
     private readonly SyncInboxStore _inboxStore;
     private readonly SignalRSyncClient _signalR;
+    private readonly IClientLogger _logger;
     private readonly Guid _clientId;
     private CancellationTokenSource? _loopCts;
     private Task? _loopTask;
@@ -37,7 +39,8 @@ public sealed class SyncCoordinator : ISyncCoordinator
         SyncCursorStore cursorStore,
         SyncOutboxStore outboxStore,
         SyncInboxStore inboxStore,
-        SignalRSyncClient signalR)
+        SignalRSyncClient signalR,
+        IClientLogger logger)
     {
         _dbFactory = dbFactory;
         _projects = projects;
@@ -48,6 +51,7 @@ public sealed class SyncCoordinator : ISyncCoordinator
         _outboxStore = outboxStore;
         _inboxStore = inboxStore;
         _signalR = signalR;
+        _logger = logger;
         _clientId = AppPaths.GetOrCreateClientId();
         _signalR.ProjectInvalidated += HandleProjectInvalidated;
     }
@@ -68,6 +72,7 @@ public sealed class SyncCoordinator : ISyncCoordinator
         }
         catch (Exception ex)
         {
+            await _logger.LogSyncOperationAsync("SyncNow", ClientLogLevel.Error, "Sync run failed.", BuildSyncLogProperties(ownerId), ex, ct);
             return new SyncRunResult(false, false, ex.Message);
         }
     }
@@ -79,6 +84,7 @@ public sealed class SyncCoordinator : ISyncCoordinator
             var response = await _syncApi.PullAsync(_cursorStore.Load(), ct);
             if (response is null)
             {
+                await _logger.LogSyncOperationAsync("Pull", ClientLogLevel.Warning, "Pull request failed or returned no response.", BuildSyncLogProperties(ownerId), ct: ct);
                 return new SyncRunResult(true, false, "Pull failed.");
             }
 
@@ -86,6 +92,11 @@ public sealed class SyncCoordinator : ISyncCoordinator
             await ApplyRemoteChangesAsync(ownerId, response.Changes, ct);
             await _inboxStore.MarkAppliedAsync(ownerId, response.Changes, ct);
             _cursorStore.Save(response.ServerVersion);
+            await _logger.LogSyncOperationAsync("Pull", ClientLogLevel.Information, "Pull completed.", BuildSyncLogProperties(ownerId, new Dictionary<string, object?>
+            {
+                ["changeCount"] = response.Changes.Count,
+                ["serverVersion"] = response.ServerVersion,
+            }), ct: ct);
             return new SyncRunResult(true, true);
         }
         catch (OperationCanceledException)
@@ -94,6 +105,7 @@ public sealed class SyncCoordinator : ISyncCoordinator
         }
         catch (Exception ex)
         {
+            await _logger.LogSyncOperationAsync("Pull", ClientLogLevel.Error, "Pull failed.", BuildSyncLogProperties(ownerId), ex, ct);
             return new SyncRunResult(true, false, ex.Message);
         }
     }
@@ -109,8 +121,9 @@ public sealed class SyncCoordinator : ISyncCoordinator
         {
             throw;
         }
-        catch
+        catch (Exception ex)
         {
+            await _logger.LogSyncOperationAsync("SignalRConnect", ClientLogLevel.Warning, "SignalR connection failed; sync will continue by polling.", BuildSyncLogProperties(ownerId), ex, ct);
         }
 
         if (_loopTask is not null && !_loopTask.IsCompleted)
@@ -148,8 +161,9 @@ public sealed class SyncCoordinator : ISyncCoordinator
         {
             throw;
         }
-        catch
+        catch (Exception ex)
         {
+            await _logger.LogSyncOperationAsync("SignalRStop", ClientLogLevel.Warning, "SignalR stop failed.", BuildSyncLogProperties(_ownerId), ex, ct);
         }
     }
 
@@ -163,8 +177,12 @@ public sealed class SyncCoordinator : ISyncCoordinator
         {
             throw;
         }
-        catch
+        catch (Exception ex)
         {
+            await _logger.LogSyncOperationAsync("SignalRSubscribeProject", ClientLogLevel.Warning, "Project subscription failed.", BuildSyncLogProperties(_ownerId, new Dictionary<string, object?>
+            {
+                ["projectId"] = projectId,
+            }), ex, ct);
         }
     }
 
@@ -178,8 +196,12 @@ public sealed class SyncCoordinator : ISyncCoordinator
         {
             throw;
         }
-        catch
+        catch (Exception ex)
         {
+            await _logger.LogSyncOperationAsync("SignalRUnsubscribeProject", ClientLogLevel.Warning, "Project unsubscription failed.", BuildSyncLogProperties(_ownerId, new Dictionary<string, object?>
+            {
+                ["projectId"] = projectId,
+            }), ex, ct);
         }
     }
 
@@ -196,6 +218,10 @@ public sealed class SyncCoordinator : ISyncCoordinator
         var response = await _syncApi.PushAsync(new SyncPushRequest(_clientId, _cursorStore.Load(), changes), ct);
         if (response is null)
         {
+            await _logger.LogSyncOperationAsync("Push", ClientLogLevel.Warning, "Push request failed or returned no response.", BuildSyncLogProperties(ownerId, new Dictionary<string, object?>
+            {
+                ["changeCount"] = changes.Count,
+            }), ct: ct);
             return false;
         }
 
@@ -203,6 +229,13 @@ public sealed class SyncCoordinator : ISyncCoordinator
         await _outboxStore.MarkAcceptedAsync(ownerId, response.AcceptedIds, ct);
         await _outboxStore.MarkConflictsAsync(ownerId, response.Conflicts, ct);
         _cursorStore.Save(response.ServerVersion);
+        await _logger.LogSyncOperationAsync(response.Conflicts.Count > 0 ? "PushConflict" : "Push", response.Conflicts.Count > 0 ? ClientLogLevel.Warning : ClientLogLevel.Information, "Push completed.", BuildSyncLogProperties(ownerId, new Dictionary<string, object?>
+        {
+            ["changeCount"] = changes.Count,
+            ["acceptedCount"] = response.AcceptedIds.Count,
+            ["conflictCount"] = response.Conflicts.Count,
+            ["serverVersion"] = response.ServerVersion,
+        }), ct: ct);
         return true;
     }
 
@@ -359,8 +392,9 @@ public sealed class SyncCoordinator : ISyncCoordinator
             {
                 await SyncNowAsync(ownerId, ct);
             }
-            catch
+            catch (Exception ex)
             {
+                await _logger.LogSyncOperationAsync("BackgroundSyncLoop", ClientLogLevel.Warning, "Background sync tick failed.", BuildSyncLogProperties(ownerId), ex, CancellationToken.None);
             }
         }
     }
@@ -377,8 +411,12 @@ public sealed class SyncCoordinator : ISyncCoordinator
         {
             await PullAsync(_ownerId.Value);
         }
-        catch
+        catch (Exception ex)
         {
+            await _logger.LogSyncOperationAsync("PullAfterProjectInvalidated", ClientLogLevel.Warning, "Pull after project invalidation failed.", BuildSyncLogProperties(_ownerId, new Dictionary<string, object?>
+            {
+                ["projectId"] = projectId,
+            }), ex, CancellationToken.None);
         }
     }
 
@@ -420,6 +458,26 @@ public sealed class SyncCoordinator : ISyncCoordinator
                 DeletedAt = change.Operation == ChangeOperation.Delete ? change.UpdatedAt : dto.Sync.DeletedAt,
             }
         };
+
+    private IReadOnlyDictionary<string, object?> BuildSyncLogProperties(Guid? ownerId, IReadOnlyDictionary<string, object?>? properties = null)
+    {
+        var result = new Dictionary<string, object?>
+        {
+            ["ownerId"] = ownerId,
+            ["clientId"] = _clientId,
+            ["cursor"] = _cursorStore.Load(),
+        };
+
+        if (properties is not null)
+        {
+            foreach (var item in properties)
+            {
+                result[item.Key] = item.Value;
+            }
+        }
+
+        return result;
+    }
 
     private static IReadOnlyDictionary<string, object?>? DeserializeRoleFields(string? json)
     {

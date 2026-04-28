@@ -1,3 +1,4 @@
+<!-- 设置页面：可滚动的表单，包含语言、服务器地址、角色、规划模式等配置项 -->
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:HeyeTodo.Client.ViewModels"
@@ -8,8 +9,10 @@
     <ScrollViewer>
         <Border MaxWidth="720" Margin="0,0,24,0" Padding="24">
             <StackPanel Spacing="20">
+                <!-- 页面标题 -->
                 <TextBlock Text="{loc:T Key=Nav.Settings}" FontSize="24" FontWeight="SemiBold"/>
 
+                <!-- 语言选择 -->
                 <StackPanel Spacing="8">
                     <TextBlock Text="{loc:T Key=Settings.Language}" FontWeight="SemiBold"/>
                     <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage}">
@@ -21,11 +24,13 @@
                     </ComboBox>
                 </StackPanel>
 
+                <!-- 服务器地址 -->
                 <StackPanel Spacing="8">
                     <TextBlock Text="{loc:T Key=Settings.ServerUrl}" FontWeight="SemiBold"/>
                     <TextBox Text="{Binding ServerBaseUrl}" PlaceholderText="http://localhost:5254/"/>
                 </StackPanel>
 
+                <!-- 角色配置（多选） -->
                 <StackPanel Spacing="8">
                     <TextBlock Text="{loc:T Key=Settings.Roles}" FontWeight="SemiBold"/>
                     <ItemsControl ItemsSource="{Binding RoleOptions}">
@@ -39,6 +44,7 @@
                     </ItemsControl>
                 </StackPanel>
 
+                <!-- 规划模式 -->
                 <StackPanel Spacing="8">
                     <TextBlock Text="{loc:T Key=Settings.PlanningMode}" FontWeight="SemiBold"/>
                     <ComboBox ItemsSource="{Binding PlanningModes}" SelectedItem="{Binding SelectedPlanningMode}">
@@ -50,11 +56,25 @@
                     </ComboBox>
                 </StackPanel>
 
+                <!-- 日志级别：控制客户端文件日志最低输出级别 -->
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Log level" FontWeight="SemiBold"/>
+                    <ComboBox ItemsSource="{Binding LogLevels}" SelectedItem="{Binding SelectedLogLevel}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:LogLevelOption">
+                                <TextBlock Text="{Binding Label}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
+
+                <!-- 状态/错误消息 -->
                 <TextBlock Text="{Binding StatusMessage}" Foreground="DarkGreen"
                            IsVisible="{Binding StatusMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                 <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}"
                            IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
 
+                <!-- 操作按钮 -->
                 <StackPanel Orientation="Horizontal" Spacing="12">
                     <Button Content="{loc:T Key=Settings.SaveChanges}" Command="{Binding SaveCommand}" Classes="accent"
                             IsEnabled="{Binding !IsBusy}"/>

@@ -6,6 +6,7 @@ using HeyeTodo.Client.Application.Planning;
 using HeyeTodo.Client.Application.Tasks;
 using HeyeTodo.Client.Infrastructure;
 using HeyeTodo.Client.Infrastructure.Localization;
+using HeyeTodo.Client.Infrastructure.Logging;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HeyeTodo.Client.ViewModels;
@@ -15,6 +16,7 @@ public sealed partial class PlanningViewModel : ViewModelBase
     private readonly ITaskWorkspaceService _workspace;
     private readonly IPlanningApplicationService _planning;
     private readonly ISettingsService _settings;
+    private readonly IClientLogger _logger;
     private readonly ClientSession _session;
 
     public ObservableCollection<ProjectItemViewModel> Projects { get; } = new();
@@ -28,11 +30,12 @@ public sealed partial class PlanningViewModel : ViewModelBase
     [ObservableProperty] private string? _errorMessage;
     [ObservableProperty] private bool _isBusy;
 
-    public PlanningViewModel(ITaskWorkspaceService workspace, IPlanningApplicationService planning, ISettingsService settings)
+    public PlanningViewModel(ITaskWorkspaceService workspace, IPlanningApplicationService planning, ISettingsService settings, IClientLogger logger)
     {
         _workspace = workspace;
         _planning = planning;
         _settings = settings;
+        _logger = logger;
         _session = AppHost.Services.GetRequiredService<ClientSession>();
         DriverLabel = BuildDriverLabel();
         _settings.Changed += OnSettingsChanged;
@@ -66,10 +69,22 @@ public sealed partial class PlanningViewModel : ViewModelBase
             DriverLabel = BuildDriverLabel(result.Driver);
             Suggestions.ReplaceWith(result.Suggestions.Select(x => new PlanningSuggestionViewModel(x)));
             Issues.ReplaceWith(result.Issues.Select(x => new PlanningIssueViewModel(x)));
+            await _logger.LogOperationAsync("Planning", "Generate", ClientLogLevel.Information, "Planning suggestions generated.", new Dictionary<string, object?>
+            {
+                ["projectId"] = SelectedProject?.Id,
+                ["driver"] = result.Driver,
+                ["suggestionCount"] = Suggestions.Count,
+                ["issueCount"] = Issues.Count,
+            });
         }
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
+            await _logger.LogUserOperationExceptionAsync("PlanningGenerate", ex, new Dictionary<string, object?>
+            {
+                ["projectId"] = SelectedProject?.Id,
+                ["planningMode"] = _settings.Current.PlanningMode,
+            });
         }
         finally
         {
@@ -93,10 +108,16 @@ public sealed partial class PlanningViewModel : ViewModelBase
             SelectedProject = currentProjectId is not null
                 ? Projects.FirstOrDefault(x => x.Id == currentProjectId.Value)
                 : Projects.FirstOrDefault();
+            await _logger.LogOperationAsync("Planning", "LoadProjects", ClientLogLevel.Information, "Planning projects loaded.", new Dictionary<string, object?>
+            {
+                ["projectCount"] = Projects.Count,
+                ["selectedProjectId"] = SelectedProject?.Id,
+            });
         }
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
+            await _logger.LogUserOperationExceptionAsync("PlanningLoadProjects", ex);
         }
         finally
         {

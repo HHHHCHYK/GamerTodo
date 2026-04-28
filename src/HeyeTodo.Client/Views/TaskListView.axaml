@@ -1,3 +1,4 @@
+<!-- 任务列表视图：上部分工具栏（项目/搜索/筛选/排序/项目CRUD），下部分左右分栏（任务列表 + 编辑面板） -->
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:HeyeTodo.Client.ViewModels"
@@ -10,7 +11,7 @@
 
     <Grid RowDefinitions="Auto,*" ColumnDefinitions="2*,1.1*" RowSpacing="12" ColumnSpacing="12">
 
-        <!-- Top toolbar card -->
+        <!-- ===== 顶部工具栏卡片（跨两列）===== -->
         <Border Grid.Row="0" Grid.ColumnSpan="2" Padding="16"
                 Background="{StaticResource CozyCardBrush}"
                 BorderBrush="{StaticResource CozyBorderBrush}" BorderThickness="2" CornerRadius="10">
@@ -18,6 +19,7 @@
                 <TextBlock Text="{loc:T Key=Nav.Tasks}" FontSize="22" FontWeight="Bold"
                            Foreground="{StaticResource CozyTextBrush}"/>
 
+                <!-- 第 1 行控件：项目选择 | 刷新 | 搜索 | 状态筛选 | 排序 | 新建任务 -->
                 <Grid ColumnDefinitions="2*,Auto,2*,Auto,Auto,Auto" ColumnSpacing="8">
                     <ComboBox Grid.Column="0" ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}">
                         <ComboBox.ItemTemplate>
@@ -46,6 +48,7 @@
                             IsEnabled="{Binding HasSelectedProject}" Classes="accent"/>
                 </Grid>
 
+                <!-- 第 2 行控件：项目名称 | 描述 | 包含已完成 | 创建项目 | 保存项目 -->
                 <Grid ColumnDefinitions="2*,2*,Auto,Auto,Auto" ColumnSpacing="8">
                     <TextBox Grid.Column="0" Text="{Binding ProjectName}" PlaceholderText="{loc:T Key=Projects.Name}"/>
                     <TextBox Grid.Column="1" Text="{Binding ProjectDescription}" PlaceholderText="{loc:T Key=Projects.Description}"/>
@@ -54,9 +57,11 @@
                     <Button Grid.Column="4" Content="{loc:T Key=Tasks.SaveProject}" Command="{Binding SaveProjectCommand}" IsEnabled="{Binding HasSelectedProject}"/>
                 </Grid>
 
+                <!-- 删除项目按钮（右对齐） -->
                 <Button Content="{loc:T Key=Tasks.DeleteProject}" Command="{Binding DeleteProjectCommand}"
                         HorizontalAlignment="Right" IsEnabled="{Binding HasSelectedProject}"/>
 
+                <!-- 状态 / 错误消息 -->
                 <TextBlock Text="{Binding StatusMessage}" Foreground="{StaticResource CozySuccessBrush}"
                            IsVisible="{Binding StatusMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                 <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource CozyErrorBrush}"
@@ -64,7 +69,7 @@
             </StackPanel>
         </Border>
 
-        <!-- Task list card -->
+        <!-- ===== 左列：任务列表卡片 ===== -->
         <Border Grid.Row="1" Grid.Column="0" Padding="14"
                 Background="{StaticResource CozyCardBrush}"
                 BorderBrush="{StaticResource CozyBorderBrush}" BorderThickness="2" CornerRadius="10">
@@ -82,6 +87,7 @@
                          SelectedItem="{Binding SelectedTask}" IsVisible="{Binding ShowTaskList}">
                     <ListBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:TaskItemViewModel">
+                            <!-- 任务卡片：左侧 4px 强调色条，右侧下一状态按钮 -->
                             <Border Padding="10" Margin="0,0,0,6"
                                     Background="{StaticResource CozyBgBrush}"
                                     BorderBrush="{StaticResource CozyBorderBrush}"
@@ -90,12 +96,15 @@
                                       RowSpacing="4" ColumnSpacing="10">
                                     <Border Grid.Column="0" Grid.RowSpan="3" Width="4" CornerRadius="2"
                                             Background="{StaticResource CozyAccentBrush}"/>
+                                    <!-- 标题 -->
                                     <TextBlock Grid.Column="1" Text="{Binding Title}" FontWeight="SemiBold"
                                                Foreground="{StaticResource CozyTextBrush}"/>
+                                    <!-- 下一状态按钮：通过 $parent 绑定到父级 UserControl 的 DataContext -->
                                     <Button Grid.Column="2" Content="{loc:T Key=Tasks.NextStatus}"
                                             Command="{Binding $parent[UserControl].DataContext.AdvanceTaskStatusCommand}"
                                             CommandParameter="{Binding}"/>
 
+                                    <!-- 标签行：状态 + 优先级 + 排期 -->
                                     <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Spacing="6">
                                         <Border Background="{StaticResource CozyListSelectedBrush}"
                                                 CornerRadius="4" Padding="6,2">
@@ -112,6 +121,7 @@
                                                    VerticalAlignment="Center"/>
                                     </StackPanel>
 
+                                    <!-- 描述（仅非空时显示） -->
                                     <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Description}"
                                                Foreground="{StaticResource CozyTextMutedBrush}"
                                                FontSize="12" TextWrapping="Wrap"
@@ -124,16 +134,18 @@
             </Grid>
         </Border>
 
-        <!-- Editor card -->
+        <!-- ===== 右列：任务编辑卡片 ===== -->
         <Border Grid.Row="1" Grid.Column="1" Padding="16"
                 Background="{StaticResource CozyCardBrush}"
                 BorderBrush="{StaticResource CozyBorderBrush}" BorderThickness="2" CornerRadius="10">
             <StackPanel Spacing="10">
                 <TextBlock Text="{loc:T Key=Tasks.Editor}" FontSize="16" FontWeight="Bold"
                            Foreground="{StaticResource CozyTextBrush}"/>
+                <!-- 未选中任务时的占位提示 -->
                 <TextBlock Text="{loc:T Key=Tasks.EditorEmpty}" Foreground="{StaticResource CozyTextMutedBrush}"
                            IsVisible="{Binding !ShowEditorForm}"/>
 
+                <!-- 编辑表单：标题 / 描述 / 状态+优先级 / 开始+结束日期 / 预估工时 / 操作按钮 -->
                 <StackPanel Spacing="8" IsVisible="{Binding ShowEditorForm}">
                     <TextBox Text="{Binding EditTitle}" PlaceholderText="{loc:T Key=Tasks.Editor.Title}"/>
                     <TextBox Text="{Binding EditDescription}" PlaceholderText="{loc:T Key=Tasks.Editor.Description}"
@@ -163,6 +175,7 @@
 
                     <TextBox Text="{Binding EditEstimatedHours}" PlaceholderText="{loc:T Key=Tasks.Editor.EstimatedHours}"/>
 
+                    <!-- 底部操作按钮 -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
                         <Button Content="{loc:T Key=Common.Cancel}" Command="{Binding CancelEditCommand}"/>
                         <Button Content="{loc:T Key=Tasks.Delete}" Command="{Binding DeleteTaskCommand}" IsEnabled="{Binding HasSelectedTask}"/>

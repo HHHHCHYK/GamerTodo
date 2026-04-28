@@ -6,6 +6,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using HeyeTodo.Client.Infrastructure.Logging;
 using HeyeTodo.Shared.Contracts.Tasks;
 
 namespace HeyeTodo.Client.Infrastructure.Networking;
@@ -13,10 +14,12 @@ namespace HeyeTodo.Client.Infrastructure.Networking;
 public sealed class TaskApiClient
 {
     private readonly ApiClient _api;
+    private readonly IClientLogger _logger;
 
-    public TaskApiClient(ApiClient api)
+    public TaskApiClient(ApiClient api, IClientLogger logger)
     {
         _api = api;
+        _logger = logger;
     }
 
     public async Task<IReadOnlyList<TaskDto>?> GetTasksAsync(TaskListQuery query, CancellationToken ct = default)
@@ -26,6 +29,7 @@ public sealed class TaskApiClient
         using var response = await _api.SendAsync(request, ct);
         if (!response.IsSuccessStatusCode)
         {
+            await LogFailureAsync("GetTasks", response, query.ProjectId, null, ct);
             return null;
         }
 
@@ -38,6 +42,7 @@ public sealed class TaskApiClient
         using var response = await _api.SendAsync(request, ct);
         if (!response.IsSuccessStatusCode)
         {
+            await LogFailureAsync("GetTask", response, null, taskId, ct);
             return null;
         }
 
@@ -53,6 +58,7 @@ public sealed class TaskApiClient
         using var response = await _api.SendAsync(message, ct);
         if (!response.IsSuccessStatusCode)
         {
+            await LogFailureAsync("CreateTask", response, request.ProjectId, null, ct);
             return null;
         }
 
@@ -68,6 +74,7 @@ public sealed class TaskApiClient
         using var response = await _api.SendAsync(message, ct);
         if (!response.IsSuccessStatusCode)
         {
+            await LogFailureAsync("UpdateTask", response, request.ProjectId, taskId, ct);
             return null;
         }
 
@@ -83,6 +90,7 @@ public sealed class TaskApiClient
         using var response = await _api.SendAsync(message, ct);
         if (!response.IsSuccessStatusCode)
         {
+            await LogFailureAsync("ChangeTaskStatus", response, null, taskId, ct);
             return null;
         }
 
@@ -93,8 +101,22 @@ public sealed class TaskApiClient
     {
         using var message = new HttpRequestMessage(HttpMethod.Delete, $"/api/tasks/{taskId:D}");
         using var response = await _api.SendAsync(message, ct);
+        if (!response.IsSuccessStatusCode)
+        {
+            await LogFailureAsync("DeleteTask", response, null, taskId, ct);
+        }
+
         return response.IsSuccessStatusCode;
     }
+
+    private Task LogFailureAsync(string operation, HttpResponseMessage response, Guid? projectId, Guid? taskId, CancellationToken ct)
+        => _logger.LogOperationAsync("TaskApi", operation, ClientLogLevel.Warning, "Task API request failed.", new Dictionary<string, object?>
+        {
+            ["statusCode"] = (int)response.StatusCode,
+            ["reasonPhrase"] = response.ReasonPhrase,
+            ["projectId"] = projectId,
+            ["taskId"] = taskId,
+        }, ct: ct);
 
     private static string BuildQueryUri(TaskListQuery query)
     {

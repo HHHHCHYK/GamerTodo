@@ -32,6 +32,8 @@ public sealed class AppSettings
 
     /// <summary>Active role context (nullable int = RoleType value or null).</summary>
     public int? ActiveRoleContext { get; set; }
+
+    public string LogLevel { get; set; } = "Information";
 }
 
 public static class SettingsStore
@@ -67,6 +69,7 @@ public interface ISettingsService
     void UpdateLocal(string? serverBaseUrl = null, string? language = null, string? planningMode = null);
     void UpdatePlanningDriver(string? localLlmEndpoint = null, string? localLlmModel = null, string? localLlmApiKey = null);
     void UpdateRoles(RoleType roles, RoleType? activeRoleContext);
+    void UpdateLogLevel(string logLevel);
 }
 
 public sealed class SettingsChangedEventArgs : EventArgs
@@ -194,6 +197,20 @@ public sealed class SettingsService : ISettingsService
         }
 
         Changed?.Invoke(this, args);
+    }
+
+    public void UpdateLogLevel(string logLevel)
+    {
+        lock (_gate)
+        {
+            if (string.Equals(Current.LogLevel, logLevel, StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
+            Current.LogLevel = logLevel;
+            SettingsStore.Save(Current);
+        }
     }
 
     private static void ApplyLanguage(string language)

@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HeyeTodo.Client.Infrastructure;
 using HeyeTodo.Client.Infrastructure.Localization;
+using HeyeTodo.Client.Infrastructure.Logging;
 using HeyeTodo.Client.Infrastructure.Navigation;
 using HeyeTodo.Client.Infrastructure.Networking;
 using HeyeTodo.Shared.Contracts.Auth;
@@ -24,6 +25,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
     private readonly ISettingsService _settings;
     private readonly ClientSession _session;
     private readonly INavigationService _navigation;
+    private readonly IClientLogger _logger;
 
     public ObservableCollection<LanguageOption> Languages { get; } = new()
     {
@@ -39,6 +41,13 @@ public sealed partial class SettingsViewModel : ViewModelBase
         new PlanningModeOption("client", "Settings.PlanningMode.Client"),
     };
 
+    public ObservableCollection<LogLevelOption> LogLevels { get; } = new()
+    {
+        new LogLevelOption("Information", "Information"),
+        new LogLevelOption("Warning", "Warning"),
+        new LogLevelOption("Error", "Error"),
+    };
+
     public ObservableCollection<RoleOption> RoleOptions { get; } = new()
     {
         new RoleOption(RoleType.Producer, "Roles.Producer"),
@@ -51,20 +60,23 @@ public sealed partial class SettingsViewModel : ViewModelBase
     [ObservableProperty] private string _serverBaseUrl = string.Empty;
     [ObservableProperty] private LanguageOption? _selectedLanguage;
     [ObservableProperty] private PlanningModeOption? _selectedPlanningMode;
+    [ObservableProperty] private LogLevelOption? _selectedLogLevel;
     [ObservableProperty] private string? _statusMessage;
     [ObservableProperty] private string? _errorMessage;
     [ObservableProperty] private bool _isBusy;
 
-    public SettingsViewModel(ApiClient api, ISettingsService settings, ClientSession session, INavigationService navigation)
+    public SettingsViewModel(ApiClient api, ISettingsService settings, ClientSession session, INavigationService navigation, IClientLogger logger)
     {
         _api = api;
         _settings = settings;
         _session = session;
         _navigation = navigation;
+        _logger = logger;
 
         ServerBaseUrl = settings.Current.ServerBaseUrl;
         SelectedLanguage = FindLanguage(settings.Current.Language);
         SelectedPlanningMode = FindPlanningMode(settings.Current.PlanningMode);
+        SelectedLogLevel = FindLogLevel(settings.Current.LogLevel);
 
         var roles = (RoleType)settings.Current.Roles;
         foreach (var option in RoleOptions)
@@ -85,6 +97,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
             var serverBaseUrl = NormalizeServerBaseUrl(ServerBaseUrl);
             var selectedLanguage = SelectedLanguage?.Value ?? "auto";
             var selectedPlanningMode = SelectedPlanningMode?.Value ?? "rule";
+            var selectedLogLevel = SelectedLogLevel?.Value ?? "Information";
 
             RoleType roles = RoleType.None;
             foreach (var option in RoleOptions)
@@ -96,11 +109,18 @@ public sealed partial class SettingsViewModel : ViewModelBase
                 || !string.Equals(_settings.Current.Language, selectedLanguage, StringComparison.Ordinal)
                 || !string.Equals(_settings.Current.PlanningMode, selectedPlanningMode, StringComparison.Ordinal);
 
+            var logLevelChanged = !string.Equals(_settings.Current.LogLevel, selectedLogLevel, StringComparison.OrdinalIgnoreCase);
+
             var rolesChanged = _settings.Current.Roles != (int)roles;
 
             if (localChanged)
             {
                 _settings.UpdateLocal(serverBaseUrl, selectedLanguage, selectedPlanningMode);
+            }
+
+            if (logLevelChanged)
+            {
+                _settings.UpdateLogLevel(selectedLogLevel);
             }
 
             if (rolesChanged)
@@ -111,6 +131,11 @@ public sealed partial class SettingsViewModel : ViewModelBase
                     ErrorMessage = localChanged
                         ? LocalizationService.Instance["Settings.SavePartialFailed"]
                         : LocalizationService.Instance["Settings.SaveFailed"];
+                    await _logger.LogOperationAsync("Settings", "Save", ClientLogLevel.Warning, "Settings role update failed.", new Dictionary<string, object?>
+                    {
+                        ["localChanged"] = localChanged,
+                        ["roles"] = roles,
+                    });
                     return;
                 }
 
@@ -119,18 +144,34 @@ public sealed partial class SettingsViewModel : ViewModelBase
                 _session.ActiveRoleContext = updatedUser.ActiveRoleContext;
             }
 
-            if (localChanged || rolesChanged)
+            if (localChanged || logLevelChanged || rolesChanged)
             {
                 StatusMessage = LocalizationService.Instance["Settings.SaveSuccess"];
+                await _logger.LogOperationAsync("Settings", "Save", ClientLogLevel.Information, "Settings saved.", new Dictionary<string, object?>
+                {
+                    ["localChanged"] = localChanged,
+                    ["language"] = selectedLanguage,
+                    ["planningMode"] = selectedPlanningMode,
+                    ["logLevelChanged"] = logLevelChanged,
+                    ["logLevel"] = selectedLogLevel,
+                    ["rolesChanged"] = rolesChanged,
+                    ["roles"] = roles,
+                });
             }
         }
-        catch (UriFormatException)
+        catch (UriFormatException ex)
         {
             ErrorMessage = LocalizationService.Instance["Settings.ServerUrlInvalid"];
+            await _logger.LogUserOperationExceptionAsync("SettingsSave", ex);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             ErrorMessage = LocalizationService.Instance["Settings.SaveFailed"];
+            await _logger.LogUserOperationExceptionAsync("SettingsSave", ex, new Dictionary<string, object?>
+            {
+                ["selectedLanguage"] = SelectedLanguage?.Value,
+                ["selectedPlanningMode"] = SelectedPlanningMode?.Value,
+            });
         }
         finally
         {
@@ -143,6 +184,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
     {
         await _api.LogoutAsync();
         _session.Reset();
+        await _logger.LogOperationAsync("Settings", "Logout", ClientLogLevel.Information, "Logout completed from settings.");
         _navigation.NavigateTo<LoginViewModel>();
     }
 
@@ -163,6 +205,9 @@ public sealed partial class SettingsViewModel : ViewModelBase
 
     private PlanningModeOption FindPlanningMode(string value)
         => FindOption(PlanningModes, value) ?? PlanningModes[0];
+
+    private LogLevelOption FindLogLevel(string value)
+        => FindOption(LogLevels, value) ?? LogLevels[0];
 
     private static TOption? FindOption<TOption>(ObservableCollection<TOption> options, string value)
         where TOption : OptionItem
@@ -197,6 +242,10 @@ public sealed class LanguageOption(string value, string labelKey) : OptionItem(v
 }
 
 public sealed class PlanningModeOption(string value, string labelKey) : OptionItem(value, labelKey)
+{
+}
+
+public sealed class LogLevelOption(string value, string labelKey) : OptionItem(value, labelKey)
 {
 }
 

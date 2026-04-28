@@ -1,3 +1,4 @@
+<!-- 规划视图：上部分控件区（项目选择 + 提示词输入 + AI 建议生成），下部分左右分栏（排期建议 + 冲突问题） -->
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:HeyeTodo.Client.ViewModels"
@@ -9,12 +10,14 @@
              x:DataType="vm:PlanningViewModel">
     <Grid RowDefinitions="Auto,*" RowSpacing="12">
 
-        <!-- Top card -->
+        <!-- ===== 顶部控件区 ===== -->
         <Border Padding="16" Background="{StaticResource CozyCardBrush}"
                 BorderBrush="{StaticResource CozyBorderBrush}" BorderThickness="2" CornerRadius="10">
             <StackPanel Spacing="10">
+                <!-- 页面标题 -->
                 <TextBlock Text="{loc:T Key=Planning.Title}" FontSize="22" FontWeight="Bold"
                            Foreground="{StaticResource CozyTextBrush}"/>
+                <!-- 工具栏：项目选择、刷新、生成建议 -->
                 <Grid ColumnDefinitions="2*,Auto,Auto" ColumnSpacing="8">
                     <ComboBox Grid.Column="0" ItemsSource="{Binding Projects}" SelectedItem="{Binding SelectedProject}">
                         <ComboBox.ItemTemplate>
@@ -26,9 +29,12 @@
                     <Button Grid.Column="1" Content="{loc:T Key=Tasks.Refresh}" Command="{Binding RefreshCommand}"/>
                     <Button Grid.Column="2" Content="{loc:T Key=Planning.Generate}" Command="{Binding GenerateCommand}" Classes="accent"/>
                 </Grid>
+                <!-- AI 提示词输入：多行文本框 -->
                 <TextBox Text="{Binding Prompt}" PlaceholderText="{loc:T Key=Planning.Prompt}"
                          AcceptsReturn="True" MinHeight="72"/>
+                <!-- 当前使用的 AI 驱动标签 -->
                 <TextBlock Text="{Binding DriverLabel}" Foreground="{StaticResource CozyTextMutedBrush}" FontSize="12"/>
+                <!-- 汇总信息 / 错误消息 -->
                 <TextBlock Text="{Binding Summary}" Foreground="{StaticResource CozySuccessBrush}"
                            IsVisible="{Binding Summary, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                 <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource CozyErrorBrush}"
@@ -36,9 +42,10 @@
             </StackPanel>
         </Border>
 
+        <!-- ===== 下部分栏：左为排期建议，右为冲突问题 ===== -->
         <Grid Grid.Row="1" ColumnDefinitions="2*,*" ColumnSpacing="12">
 
-            <!-- Suggestions card -->
+            <!-- 排期建议卡片：带排名编号、日期范围、理由和评分 -->
             <Border Padding="16" Background="{StaticResource CozyCardBrush}"
                     BorderBrush="{StaticResource CozyBorderBrush}" BorderThickness="2" CornerRadius="10">
                 <Grid RowDefinitions="Auto,*" RowSpacing="10">
@@ -52,6 +59,7 @@
                                         BorderBrush="{StaticResource CozyBorderBrush}"
                                         BorderThickness="2" CornerRadius="8">
                                     <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                        <!-- 排名编号圆角方块 -->
                                         <Border Background="{StaticResource CozyAccentBrush}"
                                                 CornerRadius="6" Width="32" Height="32">
                                             <TextBlock Text="{Binding Rank}" FontSize="16" FontWeight="Bold"
@@ -75,7 +83,7 @@
                 </Grid>
             </Border>
 
-            <!-- Issues card -->
+            <!-- 冲突/问题卡片：黄色底边高亮，显示错误码和描述 -->
             <Border Grid.Column="1" Padding="16" Background="{StaticResource CozyCardBrush}"
                     BorderBrush="{StaticResource CozyBorderBrush}" BorderThickness="2" CornerRadius="10">
                 <Grid RowDefinitions="Auto,*" RowSpacing="10">

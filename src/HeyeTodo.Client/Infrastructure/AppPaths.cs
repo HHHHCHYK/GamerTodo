@@ -18,6 +18,13 @@ public static class AppPaths
     public static string SettingsPath => Path.Combine(DataDirectory, "settings.json");
     public static string ClientIdPath => Path.Combine(DataDirectory, "client_id");
     public static string SyncCursorPath => Path.Combine(DataDirectory, "sync.cursor.json");
+    public static string LogDirectory => Path.Combine(DataDirectory, "logs");
+
+    public static string CreateClientLogPath()
+    {
+        var timestamp = DateTimeOffset.Now.ToString("yyyyMMdd-HHmmss-fff");
+        return Path.Combine(LogDirectory, $"client-{timestamp}.log");
+    }
 
     private static string ResolveDataDir()
     {

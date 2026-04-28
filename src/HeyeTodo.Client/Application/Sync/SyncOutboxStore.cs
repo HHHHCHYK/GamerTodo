@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using System.Text.Json;
 using HeyeTodo.Client.Data;
 using HeyeTodo.Client.Data.Entities;
+using HeyeTodo.Client.Infrastructure.Logging;
 using HeyeTodo.Shared.Contracts.Sync;
 using HeyeTodo.Shared.Contracts.Tasks;
 using HeyeTodo.Shared.Sync;
@@ -12,21 +14,32 @@ public sealed class SyncOutboxStore
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly IDbContextFactory<LocalDbContext> _dbFactory;
+    private readonly IClientLogger _logger;
 
-    public SyncOutboxStore(IDbContextFactory<LocalDbContext> dbFactory)
+    public SyncOutboxStore(IDbContextFactory<LocalDbContext> dbFactory, IClientLogger logger)
     {
         _dbFactory = dbFactory;
+        _logger = logger;
     }
 
     public async Task<IReadOnlyList<SyncChange>> LoadPendingChangesAsync(Guid ownerId, CancellationToken ct = default)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
-        return await db.Outbox
+        var items = await db.Outbox
             .Where(x => x.OwnerId == ownerId && x.AcknowledgedAt == null)
+            .ToListAsync(ct);
+
+        var changes = items
             .OrderBy(x => x.UpdatedAt)
             .ThenBy(x => x.EnqueuedAt)
             .Select(x => new SyncChange(x.EntityType, x.Operation, x.EntityId, x.PayloadJson, x.UpdatedAt, x.UpdatedBy, x.ClientId))
-            .ToListAsync(ct);
+            .ToList();
+        await _logger.LogSyncOperationAsync("OutboxLoadPending", ClientLogLevel.Information, "Pending outbox changes loaded.", new Dictionary<string, object?>
+        {
+            ["ownerId"] = ownerId,
+            ["changeCount"] = changes.Count,
+        }, ct: ct);
+        return changes;
     }
 
     public async Task RebuildPendingAsync(Guid ownerId, IReadOnlyList<SyncChange> changes, CancellationToken ct = default)
@@ -53,6 +66,12 @@ public sealed class SyncOutboxStore
         }
 
         await db.SaveChangesAsync(ct);
+        await _logger.LogSyncOperationAsync("OutboxRebuildPending", ClientLogLevel.Information, "Pending outbox changes rebuilt.", new Dictionary<string, object?>
+        {
+            ["ownerId"] = ownerId,
+            ["removedCount"] = existing.Count,
+            ["addedCount"] = changes.Count,
+        }, ct: ct);
     }
 
     public async Task MarkAcceptedAsync(Guid ownerId, IReadOnlyCollection<Guid> acceptedIds, CancellationToken ct = default)
@@ -75,6 +94,12 @@ public sealed class SyncOutboxStore
         }
 
         await db.SaveChangesAsync(ct);
+        await _logger.LogSyncOperationAsync("OutboxMarkAccepted", ClientLogLevel.Information, "Outbox changes accepted.", new Dictionary<string, object?>
+        {
+            ["ownerId"] = ownerId,
+            ["requestedCount"] = acceptedIds.Count,
+            ["markedCount"] = items.Count,
+        }, ct: ct);
     }
 
     public async Task MarkConflictsAsync(Guid ownerId, IReadOnlyList<SyncConflict> conflicts, CancellationToken ct = default)
@@ -86,6 +111,7 @@ public sealed class SyncOutboxStore
 
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
         var now = DateTimeOffset.UtcNow;
+        var markedCount = 0;
         foreach (var conflict in conflicts)
         {
             var items = await db.Outbox
@@ -97,9 +123,17 @@ public sealed class SyncOutboxStore
                 item.AcknowledgedAt = now;
                 item.ConflictReason = conflict.Reason;
             }
+
+            markedCount += items.Count;
         }
 
         await db.SaveChangesAsync(ct);
+        await _logger.LogSyncOperationAsync("OutboxMarkConflicts", ClientLogLevel.Warning, "Outbox conflicts marked.", new Dictionary<string, object?>
+        {
+            ["ownerId"] = ownerId,
+            ["conflictCount"] = conflicts.Count,
+            ["markedCount"] = markedCount,
+        }, ct: ct);
     }
 
     public static SyncChange MapProjectChange(LocalProject project)

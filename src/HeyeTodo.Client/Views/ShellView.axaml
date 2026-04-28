@@ -1,3 +1,4 @@
+<!-- 导航外壳视图：左侧 220px 侧边栏（Logo + 导航菜单 + 登出）+ 右侧主内容区 -->
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:HeyeTodo.Client.ViewModels"
@@ -10,38 +11,47 @@
 
     <Grid ColumnDefinitions="220,*">
 
-        <!-- Sidebar -->
+        <!-- ============ 左侧边栏 ============ -->
         <Border Grid.Column="0" Background="{StaticResource CozySidebarBrush}" Padding="14">
-            <DockPanel>
-                <StackPanel DockPanel.Dock="Top" Spacing="2" Margin="0,0,0,20">
+            <Grid RowDefinitions="Auto,*,Auto" RowSpacing="16">
+                <!-- 顶部品牌区域：Logo + 副标题 -->
+                <StackPanel Grid.Row="0" Spacing="2">
                     <TextBlock Text="✦ HeyeTodo ✦" FontSize="16" FontWeight="Bold"
                                Foreground="{StaticResource CozyAccentBrush}" HorizontalAlignment="Center"/>
                     <TextBlock Text="{loc:T Key=App.Tagline}" Foreground="{StaticResource CozyTextMutedBrush}"
                                TextWrapping="Wrap" FontSize="11" HorizontalAlignment="Center" TextAlignment="Center"/>
                 </StackPanel>
 
-                <Button DockPanel.Dock="Bottom" Command="{Binding LogoutCommand}"
+                <!-- 导航菜单列表：每个 NavItem 包含图标和文字 -->
+                <ItemsControl Grid.Row="1" ItemsSource="{Binding NavItems}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:NavItem">
+                            <Button Command="{Binding $parent[UserControl].DataContext.SelectNavCommand}"
+                                    CommandParameter="{Binding}"
+                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                                    Background="Transparent" BorderThickness="0" Padding="10,8" Margin="0,3">
+                                <Grid ColumnDefinitions="22,*" ColumnSpacing="10">
+                                    <PathIcon Grid.Column="0" Data="{Binding IconPathData}" Width="16" Height="16"
+                                              VerticalAlignment="Center" Foreground="{StaticResource CozyAccentBrush}"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Label}" VerticalAlignment="Center"
+                                               Foreground="{StaticResource CozyTextBrush}" FontSize="14"/>
+                                </Grid>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- 底部登出按钮 -->
+                <Button Grid.Row="2" Command="{Binding LogoutCommand}"
                         HorizontalAlignment="Stretch" Margin="0,8,0,0">
                     Logout
                 </Button>
-
-                <ListBox ItemsSource="{Binding NavItems}" SelectedItem="{Binding SelectedNav}">
-                    <ListBox.ItemTemplate>
-                        <DataTemplate x:DataType="vm:NavItem">
-                            <StackPanel Orientation="Horizontal" Spacing="10" Height="34">
-                                <PathIcon Data="{Binding IconPathData}" Width="16" Height="16"
-                                          VerticalAlignment="Center" Foreground="{StaticResource CozyAccentBrush}"/>
-                                <TextBlock Text="{Binding Label}" VerticalAlignment="Center"
-                                           Foreground="{StaticResource CozyTextBrush}"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListBox.ItemTemplate>
-                </ListBox>
-            </DockPanel>
+            </Grid>
         </Border>
 
-        <!-- Content -->
+        <!-- ============ 右侧主内容区 ============ -->
         <Border Grid.Column="1" Background="{StaticResource CozyBgBrush}" Padding="16">
+            <!-- 由 ViewModel 的 Content 属性动态切换子视图 -->
             <ContentControl Content="{Binding Content}"/>
         </Border>
     </Grid>

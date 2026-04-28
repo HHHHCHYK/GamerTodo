@@ -10,6 +10,7 @@ using HeyeTodo.Client.Application.Sync;
 using HeyeTodo.Client.Application.Tasks;
 using HeyeTodo.Client.Infrastructure;
 using HeyeTodo.Client.Infrastructure.Localization;
+using HeyeTodo.Client.Infrastructure.Logging;
 using HeyeTodo.Shared.Contracts.Tasks;
 using HeyeTodo.Shared.Enums;
 using HeyeTodo.Shared.RolePanels;
@@ -22,6 +23,7 @@ public sealed partial class RolePanelsViewModel : ViewModelBase
 {
     private readonly ITaskWorkspaceService _workspace;
     private readonly ISyncCoordinator _sync;
+    private readonly IClientLogger _logger;
     private readonly ClientSession _session;
     private readonly Guid _clientId;
     private bool _reloadingSelection;
@@ -51,10 +53,11 @@ public sealed partial class RolePanelsViewModel : ViewModelBase
     public bool ShowTaskList => HasRoles && HasSelectedProject && HasTasks;
     public bool ShowRoleEditor => HasRoles && HasSelectedProject && HasSelectedTask;
 
-    public RolePanelsViewModel(ITaskWorkspaceService workspace, ISyncCoordinator sync)
+    public RolePanelsViewModel(ITaskWorkspaceService workspace, ISyncCoordinator sync, IClientLogger logger)
     {
         _workspace = workspace;
         _sync = sync;
+        _logger = logger;
         _session = AppHost.Services.GetRequiredService<ClientSession>();
         _clientId = AppPaths.GetOrCreateClientId();
         _sync.ProjectInvalidated += OnProjectInvalidated;
@@ -134,13 +137,28 @@ public sealed partial class RolePanelsViewModel : ViewModelBase
             }
 
             await LoadTasksAsync(updated.Value.Id);
+            await _logger.LogOperationAsync("RolePanels", "ApplyAction", ClientLogLevel.Information, "Role panel action applied.", new Dictionary<string, object?>
+            {
+                ["projectId"] = SelectedProject?.Id,
+                ["taskId"] = SelectedTask.Id,
+                ["role"] = SelectedRolePanel?.Role,
+                ["targetStatus"] = action.TargetStatus,
+                ["synced"] = updated.Synced,
+            });
             StatusMessage = updated.Synced
                 ? LocalizationService.Instance["RolePanels.ActionApplied"]
                 : LocalizationService.Instance["Tasks.Warning.LocalOnly"];
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             ErrorMessage = LocalizationService.Instance["Tasks.Error.StatusUpdateFailed"];
+            await _logger.LogUserOperationExceptionAsync("RolePanelsApplyAction", ex, new Dictionary<string, object?>
+            {
+                ["projectId"] = SelectedProject?.Id,
+                ["taskId"] = SelectedTask?.Id,
+                ["role"] = SelectedRolePanel?.Role,
+                ["targetStatus"] = action.TargetStatus,
+            });
         }
         finally
         {
@@ -184,13 +202,27 @@ public sealed partial class RolePanelsViewModel : ViewModelBase
             }
 
             await LoadTasksAsync(updated.Value.Id);
+            await _logger.LogOperationAsync("RolePanels", "SaveRoleFields", ClientLogLevel.Information, "Role fields saved.", new Dictionary<string, object?>
+            {
+                ["projectId"] = SelectedProject?.Id,
+                ["taskId"] = SelectedTask.Id,
+                ["role"] = SelectedRolePanel?.Role,
+                ["fieldCount"] = values.Count,
+                ["synced"] = updated.Synced,
+            });
             StatusMessage = updated.Synced
                 ? LocalizationService.Instance["RolePanels.FieldsSaved"]
                 : LocalizationService.Instance["Tasks.Warning.LocalOnly"];
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             ErrorMessage = LocalizationService.Instance["Tasks.Error.TaskSaveFailed"];
+            await _logger.LogUserOperationExceptionAsync("RolePanelsSaveRoleFields", ex, new Dictionary<string, object?>
+            {
+                ["projectId"] = SelectedProject?.Id,
+                ["taskId"] = SelectedTask?.Id,
+                ["role"] = SelectedRolePanel?.Role,
+            });
         }
         finally
         {
@@ -233,6 +265,14 @@ public sealed partial class RolePanelsViewModel : ViewModelBase
             {
                 await _sync.SubscribeProjectAsync(SelectedProject.Id);
                 await LoadTasksAsync();
+                await _logger.LogOperationAsync("RolePanels", "Load", ClientLogLevel.Information, "Role panels loaded.", new Dictionary<string, object?>
+                {
+                    ["projectId"] = SelectedProject.Id,
+                    ["role"] = SelectedRolePanel.Role,
+                    ["projectCount"] = Projects.Count,
+                    ["taskCount"] = Tasks.Count,
+                    ["roleCount"] = RolePanels.Count,
+                });
             }
             else
             {
@@ -242,9 +282,14 @@ public sealed partial class RolePanelsViewModel : ViewModelBase
                 BuildFieldEditors();
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             ErrorMessage = LocalizationService.Instance["Tasks.Error.LoadFailed"];
+            await _logger.LogUserOperationExceptionAsync("RolePanelsLoad", ex, new Dictionary<string, object?>
+            {
+                ["selectedProjectId"] = SelectedProject?.Id,
+                ["selectedRole"] = SelectedRolePanel?.Role,
+            });
         }
         finally
         {

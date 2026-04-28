@@ -89,6 +89,7 @@
         <Setter Property="BorderThickness" Value="2"/>
         <Setter Property="CornerRadius" Value="6"/>
         <Setter Property="Padding" Value="10,6"/>
+        <Setter Property="MinHeight" Value="34"/>
         <Setter Property="FontSize" Value="13"/>
         <Setter Property="SelectionBrush" Value="#FFCDB5"/>
         <Setter Property="Template">
@@ -96,13 +97,13 @@
                 <Border Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}"
-                        CornerRadius="{TemplateBinding CornerRadius}">
-                    <ScrollViewer Padding="{TemplateBinding Padding}">
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        Padding="{TemplateBinding Padding}">
+                    <ScrollViewer>
                         <Panel>
                             <TextBlock Text="{TemplateBinding Watermark}"
                                        IsVisible="{TemplateBinding Text, Converter={x:Static StringConverters.IsNullOrEmpty}}"
                                        Foreground="{StaticResource CozyTextMutedBrush}"
-                                       Margin="{TemplateBinding Padding}"
                                        VerticalAlignment="Center"/>
                             <TextPresenter Name="PART_TextPresenter"
                                            Text="{TemplateBinding Text, Mode=TwoWay}"

@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using System.Text.Json;
 using HeyeTodo.Client.Data.Repositories;
 using HeyeTodo.Client.Infrastructure;
+using HeyeTodo.Client.Infrastructure.Logging;
 using HeyeTodo.Shared.Contracts.Planning;
 using HeyeTodo.Shared.Contracts.Tasks;
 
@@ -17,13 +19,15 @@ public sealed class PlanningApplicationService : IPlanningApplicationService
     private readonly IDependencyRepository _dependencies;
     private readonly ISettingsService _settings;
     private readonly IEnumerable<IPlanningDriver> _drivers;
+    private readonly IClientLogger _logger;
 
-    public PlanningApplicationService(ITaskRepository tasks, IDependencyRepository dependencies, ISettingsService settings, IEnumerable<IPlanningDriver> drivers)
+    public PlanningApplicationService(ITaskRepository tasks, IDependencyRepository dependencies, ISettingsService settings, IEnumerable<IPlanningDriver> drivers, IClientLogger logger)
     {
         _tasks = tasks;
         _dependencies = dependencies;
         _settings = settings;
         _drivers = drivers;
+        _logger = logger;
     }
 
     public async Task<PlanningResponse> PlanAsync(Guid ownerId, Guid? projectId, string? prompt = null, CancellationToken ct = default)
@@ -52,7 +56,36 @@ public sealed class PlanningApplicationService : IPlanningApplicationService
 
         var driver = _drivers.FirstOrDefault(x => string.Equals(x.Name, settings.PlanningMode, StringComparison.OrdinalIgnoreCase))
                      ?? _drivers.First(x => x.Name == "rule");
-        return await driver.PlanAsync(request, settings, ct);
+        await _logger.LogOperationAsync("PlanningService", "Plan", ClientLogLevel.Information, "Planning request prepared.", new Dictionary<string, object?>
+        {
+            ["projectId"] = projectId,
+            ["driver"] = driver.Name,
+            ["taskCount"] = tasks.Count,
+            ["dependencyCount"] = dependencies.Count,
+            ["hasPrompt"] = !string.IsNullOrWhiteSpace(prompt),
+        }, ct: ct);
+
+        try
+        {
+            var response = await driver.PlanAsync(request, settings, ct);
+            await _logger.LogOperationAsync("PlanningService", "Plan", ClientLogLevel.Information, "Planning driver completed.", new Dictionary<string, object?>
+            {
+                ["projectId"] = projectId,
+                ["driver"] = response.Driver,
+                ["suggestionCount"] = response.Suggestions.Count,
+                ["issueCount"] = response.Issues.Count,
+            }, ct: ct);
+            return response;
+        }
+        catch (Exception ex)
+        {
+            await _logger.LogUserOperationExceptionAsync("PlanningServicePlan", ex, new Dictionary<string, object?>
+            {
+                ["projectId"] = projectId,
+                ["driver"] = driver.Name,
+            }, ct);
+            throw;
+        }
     }
 
     private static IReadOnlyDictionary<string, object?>? ReadRoleFields(string? json)

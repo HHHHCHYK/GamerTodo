@@ -1,3 +1,4 @@
+<!-- 小游戏中心页面：占位视图，显示"即将推出"提示 -->
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:HeyeTodo.Client.ViewModels"
@@ -10,7 +11,9 @@
 
     <Border VerticalAlignment="Center" HorizontalAlignment="Center">
         <StackPanel Spacing="8" HorizontalAlignment="Center" MaxWidth="420">
+            <!-- 标题 -->
             <TextBlock FontSize="24" FontWeight="SemiBold" Text="{loc:T Key=MiniGames.ComingSoon}" HorizontalAlignment="Center"/>
+            <!-- 说明正文 -->
             <TextBlock Opacity="0.65" TextAlignment="Center" TextWrapping="Wrap" Text="{loc:T Key=MiniGames.Body}"/>
         </StackPanel>
     </Border>

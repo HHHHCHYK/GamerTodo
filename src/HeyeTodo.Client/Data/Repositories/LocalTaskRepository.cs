@@ -58,8 +58,8 @@ public sealed class LocalTaskRepository : ITaskRepository
             tasks = tasks.Where(x => x.Title.Contains(search) || (x.Description != null && x.Description.Contains(search)));
         }
 
-        tasks = ApplySort(tasks, query.SortBy, query.SortDirection);
-        return await tasks.ToListAsync(ct);
+        var taskList = await tasks.ToListAsync(ct);
+        return ApplySort(taskList, query.SortBy, query.SortDirection).ToList();
     }
 
     public async Task<LocalTask?> GetAsync(Guid ownerId, Guid taskId, CancellationToken ct = default)
@@ -261,7 +261,7 @@ public sealed class LocalTaskRepository : ITaskRepository
                 project => project.Id,
                 (task, _) => task);
 
-    private static IQueryable<LocalTask> ApplySort(IQueryable<LocalTask> query, TaskSortField sortBy, SortDirection direction)
+    private static IOrderedEnumerable<LocalTask> ApplySort(IEnumerable<LocalTask> query, TaskSortField sortBy, SortDirection direction)
     {
         var descending = direction == SortDirection.Descending;
         return sortBy switch

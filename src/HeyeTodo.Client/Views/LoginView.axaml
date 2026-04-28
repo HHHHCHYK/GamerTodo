@@ -1,3 +1,4 @@
+<!-- 登录页面：居中的卡片式布局，包含品牌标题、邮箱/密码输入、登录/注册按钮 -->
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:HeyeTodo.Client.ViewModels"
@@ -8,25 +9,33 @@
              x:Class="HeyeTodo.Client.Views.LoginView"
              x:DataType="vm:LoginViewModel">
 
+    <!-- 全屏背景 -->
     <Border Background="{StaticResource CozyBgBrush}">
+        <!-- 登录卡片：固定最大宽度 360，居中 -->
         <Border MaxWidth="360" VerticalAlignment="Center" HorizontalAlignment="Center"
                 Padding="28" Background="{StaticResource CozyCardBrush}"
                 BorderBrush="{StaticResource CozyBorderBrush}" BorderThickness="2" CornerRadius="12">
             <StackPanel Spacing="14">
+                <!-- 品牌标题与副标题 -->
                 <TextBlock Text="★ HeyeTodo ★" FontSize="22" FontWeight="Bold"
                            Foreground="{StaticResource CozyAccentBrush}" HorizontalAlignment="Center"/>
                 <TextBlock Text="{loc:T Key=App.Tagline}" Foreground="{StaticResource CozyTextMutedBrush}"
                            HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" FontSize="12"/>
 
+                <!-- 邮箱输入 -->
                 <TextBox PlaceholderText="{loc:T Key=Auth.Email}" Text="{Binding Email}"/>
+                <!-- 密码输入（掩码显示） -->
                 <TextBox PlaceholderText="{loc:T Key=Auth.Password}" Text="{Binding Password}" PasswordChar="*"/>
 
+                <!-- 错误消息：仅在有错误时显示 -->
                 <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource CozyErrorBrush}"
                            IsVisible="{Binding ErrorMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
 
+                <!-- 登录按钮：忙时禁用 -->
                 <Button Content="{loc:T Key=Auth.Login}" Command="{Binding LoginCommand}"
                         IsEnabled="{Binding !IsBusy}" HorizontalAlignment="Stretch" Classes="accent"/>
 
+                <!-- 跳转注册页 -->
                 <Button Content="{loc:T Key=Auth.Register}" Command="{Binding GoToRegisterCommand}"
                         HorizontalAlignment="Stretch"/>
             </StackPanel>

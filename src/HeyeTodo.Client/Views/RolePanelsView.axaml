@@ -1,3 +1,4 @@
+<!-- 角色面板视图：上方项目选择与角色标签切换栏，下方三栏布局（仪表盘 | 任务列表 | 角色字段编辑） -->
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:HeyeTodo.Client.ViewModels"
@@ -9,6 +10,8 @@
              x:DataType="vm:RolePanelsViewModel">
 
     <Grid RowDefinitions="Auto,*" RowSpacing="16">
+
+        <!-- ===== 顶部栏：项目选择 + 刷新 + 角色标签页 ===== -->
         <Border Padding="16" Background="{DynamicResource SystemRegionBrush}">
             <StackPanel Spacing="12">
                 <TextBlock Text="{loc:T Key=RolePanels.Title}" FontSize="24" FontWeight="SemiBold"/>
@@ -21,6 +24,7 @@
                         </ComboBox.ItemTemplate>
                     </ComboBox>
                     <Button Grid.Column="1" Content="{loc:T Key=Tasks.Refresh}" Command="{Binding RefreshCommand}"/>
+                    <!-- 角色标签页：水平排列的横向标签列表 -->
                     <ListBox Grid.Column="2" ItemsSource="{Binding RolePanels}" SelectedItem="{Binding SelectedRolePanel}" Background="Transparent" BorderThickness="0">
                         <ListBox.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -36,6 +40,7 @@
                         </ListBox.ItemTemplate>
                     </ListBox>
                 </Grid>
+                <!-- 空状态 / 消息 -->
                 <TextBlock Text="{loc:T Key=RolePanels.NoRoles}" Opacity="0.7" IsVisible="{Binding ShowNoRolesMessage}"/>
                 <TextBlock Text="{loc:T Key=Tasks.NoProject}" Opacity="0.7" IsVisible="{Binding ShowNoProjectMessage}"/>
                 <TextBlock Text="{Binding StatusMessage}" Foreground="DarkGreen" IsVisible="{Binding StatusMessage, Converter={x:Static ObjectConverters.IsNotNull}}"/>
@@ -43,10 +48,14 @@
             </StackPanel>
         </Border>
 
+        <!-- ===== 三栏内容区 ===== -->
         <Grid Grid.Row="1" ColumnDefinitions="1.1*,1.5*,1.2*" ColumnSpacing="16">
+
+            <!-- === 第 1 栏：仪表盘 === -->
             <Border Grid.Column="0" Padding="16" Background="{DynamicResource SystemRegionBrush}">
                 <Grid RowDefinitions="Auto,Auto,*" RowSpacing="12">
                     <TextBlock Text="{loc:T Key=RolePanels.Dashboard}" FontSize="18" FontWeight="SemiBold"/>
+                    <!-- 仪表盘卡片列表：标题 + 描述 -->
                     <ItemsControl Grid.Row="1" ItemsSource="{Binding DashboardCards}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:RoleDashboardCardViewModel">
@@ -60,6 +69,7 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
+                    <!-- 快捷操作按钮列表 -->
                     <StackPanel Grid.Row="2" Spacing="8">
                         <TextBlock Text="{loc:T Key=RolePanels.Actions}" FontSize="16" FontWeight="SemiBold"/>
                         <ItemsControl ItemsSource="{Binding Actions}">
@@ -78,6 +88,7 @@
                 </Grid>
             </Border>
 
+            <!-- === 第 2 栏：任务列表 === -->
             <Border Grid.Column="1" Padding="16" Background="{DynamicResource SystemRegionBrush}">
                 <Grid RowDefinitions="Auto,*" RowSpacing="12">
                     <StackPanel Spacing="4">
@@ -103,12 +114,14 @@
                 </Grid>
             </Border>
 
+            <!-- === 第 3 栏：角色字段编辑器 === -->
             <Border Grid.Column="2" Padding="16" Background="{DynamicResource SystemRegionBrush}">
                 <Grid RowDefinitions="Auto,*" RowSpacing="12">
                     <StackPanel Spacing="4">
                         <TextBlock Text="{loc:T Key=RolePanels.Fields}" FontSize="18" FontWeight="SemiBold"/>
                         <TextBlock Text="{loc:T Key=RolePanels.SelectTask}" Opacity="0.7" IsVisible="{Binding !ShowRoleEditor}"/>
                     </StackPanel>
+                    <!-- 选中任务后显示字段编辑器：标签 + 输入框，支持多行 -->
                     <StackPanel Grid.Row="1" Spacing="10" IsVisible="{Binding ShowRoleEditor}">
                         <ItemsControl ItemsSource="{Binding FieldEditors}">
                             <ItemsControl.ItemTemplate>

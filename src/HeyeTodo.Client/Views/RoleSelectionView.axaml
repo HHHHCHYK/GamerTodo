@@ -1,3 +1,4 @@
+<!-- 角色选择页面：居中卡片，提示用户选择开发者角色，支持跳过或继续 -->
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:HeyeTodo.Client.ViewModels"
@@ -10,8 +11,10 @@
 
     <Border MaxWidth="480" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24">
         <StackPanel Spacing="16">
+            <!-- 选择提示文本 -->
             <TextBlock FontSize="22" FontWeight="SemiBold" Text="{loc:T Key=Roles.SelectionPrompt}" TextWrapping="Wrap"/>
 
+            <!-- 角色选项列表：CheckBox 多选 -->
             <ItemsControl ItemsSource="{Binding Options}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:RoleOption">
@@ -22,6 +25,7 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
+            <!-- 底部操作按钮：跳过 / 继续 -->
             <StackPanel Orientation="Horizontal" Spacing="12" HorizontalAlignment="Right">
                 <Button Content="{loc:T Key=Common.Skip}"     Command="{Binding SkipCommand}"/>
                 <Button Content="{loc:T Key=Common.Continue}" Command="{Binding ContinueCommand}" Classes="accent"/>
