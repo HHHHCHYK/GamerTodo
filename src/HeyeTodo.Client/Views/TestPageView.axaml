@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:HeyeTodo.Client.ViewModels"
+             x:Class="HeyeTodo.Client.Views.TestPageView"
+             x:DataType="vm:TestPageViewModel">
+    <Grid RowDefinitions="Auto,*">
+        <StackPanel Spacing="6">
+            <TextBlock Text="测试界面" FontSize="30" FontWeight="Bold"/>
+            <TextBlock Text="这是右侧主内容区域，后续功能页面会在这里逐步填充。"
+                       Foreground="{StaticResource SecondaryTextBrush}"/>
+        </StackPanel>
+
+        <Border Grid.Row="1"
+                Margin="0,24,0,0"
+                Padding="28"
+                Background="{StaticResource SurfaceWarmBrush}"
+                BorderBrush="{StaticResource SoftBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="24">
+            <StackPanel Spacing="18" VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="560">
+                <Border Width="72" Height="72"
+                        Background="{StaticResource NavigationItemHoverBrush}"
+                        CornerRadius="24">
+                    <TextBlock Text="●"
+                               FontSize="26"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Foreground="{StaticResource NavigationItemSelectedBrush}"/>
+                </Border>
+                <TextBlock Text="测试界面" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                <TextBlock Text="当前页面用于验证导航、主题和内容承载结构。"
+                           Foreground="{StaticResource SecondaryTextBrush}"
+                           TextWrapping="Wrap"
+                           HorizontalAlignment="Center"/>
+
+                <Border Padding="18"
+                        Background="{StaticResource SurfaceBrush}"
+                        BorderBrush="{StaticResource SoftBorderBrush}"
+                        BorderThickness="1"
+                        CornerRadius="18"
+                        Width="520">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="持久化系统测试" FontSize="18" FontWeight="SemiBold"/>
+                        <TextBlock Text="这里用于验证测试数据模块通过统一持久化系统自动保存自己的独立文件。"
+                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                   TextWrapping="Wrap"/>
+                        <TextBox Text="{Binding PersistenceText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True"
+                                 MinHeight="96"
+                                 TextWrapping="Wrap"
+                                 PlaceholderText="输入内容后会自动保存，重启应用后会自动读取。"
+                                 Classes.WarmInput="True"/>
+                        <TextBlock Text="{Binding PersistenceStatus}"
+                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

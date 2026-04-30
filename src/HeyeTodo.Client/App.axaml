@@ -1,22 +1,158 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="HeyeTodo.Client.App"
              xmlns:local="using:HeyeTodo.Client"
+             x:Class="HeyeTodo.Client.App"
              RequestedThemeVariant="Default">
-
+    <Application.Resources>
+        <SolidColorBrush x:Key="AppBackgroundBrush" Color="#FFF3EA"/>
+        <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#FFE1CF"/>
+        <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFB"/>
+        <SolidColorBrush x:Key="SurfaceWarmBrush" Color="#FFF8F0"/>
+        <SolidColorBrush x:Key="NavigationItemBrush" Color="#FFF7EF"/>
+        <SolidColorBrush x:Key="NavigationItemHoverBrush" Color="#FFD1B3"/>
+        <SolidColorBrush x:Key="NavigationItemPressedBrush" Color="#FFB37A"/>
+        <SolidColorBrush x:Key="NavigationItemSelectedBrush" Color="#FF7A45"/>
+        <SolidColorBrush x:Key="PrimaryTextBrush" Color="#4A2418"/>
+        <SolidColorBrush x:Key="SecondaryTextBrush" Color="#8A4E36"/>
+        <SolidColorBrush x:Key="SelectedTextBrush" Color="#FFFFFB"/>
+        <SolidColorBrush x:Key="SoftBorderBrush" Color="#F0B392"/>
+        <SolidColorBrush x:Key="ShadowWarmBrush" Color="#22000000"/>
+    </Application.Resources>
     <Application.DataTemplates>
         <local:ViewLocator/>
     </Application.DataTemplates>
-
     <Application.Styles>
-        <FluentTheme />
+        <FluentTheme/>
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+        </Style>
+        <Style Selector="Button.NavigationCard">
+            <Setter Property="Background" Value="{StaticResource NavigationItemBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource SoftBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="14,12"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12"/>
+                    <BrushTransition Property="Foreground" Duration="0:0:0.12"/>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.08"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.NavigationCard:pointerover">
+            <Setter Property="Background" Value="{StaticResource NavigationItemHoverBrush}"/>
+        </Style>
+        <Style Selector="Button.NavigationCard:pressed">
+            <Setter Property="Background" Value="{StaticResource NavigationItemPressedBrush}"/>
+            <Setter Property="Opacity" Value="0.88"/>
+        </Style>
+        <Style Selector="Button.NavigationCard.selected">
+            <Setter Property="Background" Value="{StaticResource NavigationItemSelectedBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource SelectedTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource NavigationItemSelectedBrush}"/>
+        </Style>
+        <Style Selector="Button.TaskCheck">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource SelectedTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource SoftBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12"/>
+                    <BrushTransition Property="BorderBrush" Duration="0:0:0.12"/>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.08"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.TaskCheck:pointerover">
+            <Setter Property="Background" Value="{StaticResource NavigationItemHoverBrush}"/>
+        </Style>
+        <Style Selector="Button.TaskCheck:pressed">
+            <Setter Property="Background" Value="{StaticResource NavigationItemPressedBrush}"/>
+            <Setter Property="Opacity" Value="0.88"/>
+        </Style>
+        <Style Selector="Button.TaskCard">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+            <Setter Property="MinHeight" Value="92"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.12"/>
+                    <DoubleTransition Property="Opacity" Duration="0:0:0.08"/>
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Button.TaskCard:pointerover">
+            <Setter Property="Background" Value="{StaticResource NavigationItemHoverBrush}"/>
+        </Style>
+        <Style Selector="Button.TaskCard:pressed">
+            <Setter Property="Background" Value="{StaticResource NavigationItemPressedBrush}"/>
+            <Setter Property="Opacity" Value="0.9"/>
+        </Style>
+        <Style Selector="Button.PanelAction">
+            <Setter Property="Background" Value="{StaticResource NavigationItemBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource SoftBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="14"/>
+            <Setter Property="Padding" Value="12,8"/>
+        </Style>
+        <Style Selector="Button.PanelAction:pointerover">
+            <Setter Property="Background" Value="{StaticResource NavigationItemHoverBrush}"/>
+        </Style>
+        <Style Selector="Button.PanelAction:pressed">
+            <Setter Property="Background" Value="{StaticResource NavigationItemPressedBrush}"/>
+        </Style>
+        <Style Selector="Button.DangerAction">
+            <Setter Property="Background" Value="#FFF0EA"/>
+            <Setter Property="Foreground" Value="#B13A20"/>
+            <Setter Property="BorderBrush" Value="#E08A72"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="14,10"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Button.DangerAction:pointerover">
+            <Setter Property="Background" Value="#FFD7CA"/>
+        </Style>
+        <Style Selector="Button.DangerAction:pressed">
+            <Setter Property="Background" Value="#FFB09B"/>
+            <Setter Property="Opacity" Value="0.9"/>
+        </Style>
+        <Style Selector="TextBox.WarmInput">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource SoftBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="14,12"/>
+        </Style>
+        <Style Selector="TextBox.WarmInput:pointerover">
+            <Setter Property="BorderBrush" Value="{StaticResource NavigationItemPressedBrush}"/>
+        </Style>
+        <Style Selector="TextBox.WarmInput:focus">
+            <Setter Property="BorderBrush" Value="{StaticResource NavigationItemSelectedBrush}"/>
+        </Style>
+        <Style Selector="ComboBox.WarmSelect">
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource SoftBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="Padding" Value="14,12"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        </Style>
+        <Style Selector="ComboBox.WarmSelect:pointerover">
+            <Setter Property="BorderBrush" Value="{StaticResource NavigationItemPressedBrush}"/>
+        </Style>
     </Application.Styles>
-
-    <Application.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceInclude Source="/Assets/PixelCozyTheme.axaml"/>
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Application.Resources>
 </Application>

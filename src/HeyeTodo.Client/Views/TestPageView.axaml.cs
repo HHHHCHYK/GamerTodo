@@ -1,12 +1,11 @@
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace HeyeTodo.Client.Views;
 
-public partial class MainWindow : Window
+public partial class TestPageView : UserControl
 {
-    public MainWindow()
+    public TestPageView()
     {
         InitializeComponent();
     }
