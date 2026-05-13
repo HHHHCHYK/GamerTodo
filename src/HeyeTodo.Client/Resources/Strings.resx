@@ -36,7 +36,6 @@
   <data name="App.Title" xml:space="preserve"><value>HeyeTodo</value></data>
   <data name="App.Tagline" xml:space="preserve"><value>A TODO tool built for indie game developers.</value></data>
   <data name="Nav.Tasks" xml:space="preserve"><value>Tasks</value></data>
-  <data name="Nav.Gantt" xml:space="preserve"><value>Gantt</value></data>
   <data name="Nav.RolePanels" xml:space="preserve"><value>Role panels</value></data>
   <data name="Nav.Planning" xml:space="preserve"><value>Planning</value></data>
   <data name="Nav.MiniGames" xml:space="preserve"><value>Mini-games</value></data>

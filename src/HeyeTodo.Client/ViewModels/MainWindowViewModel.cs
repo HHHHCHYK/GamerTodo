@@ -6,16 +6,16 @@ namespace HeyeTodo.Client.ViewModels;
 
 public sealed partial class MainWindowViewModel : ViewModelBase
 {
-    public MainWindowViewModel(TestPageViewModel testPage, TaskPanelViewModel taskPanel, GanttChartViewModel ganttChart)
+    public MainWindowViewModel(AccountViewModel account, TestPageViewModel testPage, TaskPanelViewModel taskPanel)
     {
         NavigationItems = new ObservableCollection<NavigationItemViewModel>
         {
-            new("测试界面", "●", testPage),
+            new("账号与同步", "◎", account),
             new("任务面板", "✓", taskPanel),
-            new("甘特图", "▦", ganttChart),
+            new("测试界面", "●", testPage),
         };
 
-        SelectNavigationItem(NavigationItems[0]);
+        SelectNavigationItem(NavigationItems[1]);
     }
 
     public ObservableCollection<NavigationItemViewModel> NavigationItems { get; }

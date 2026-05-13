@@ -57,13 +57,13 @@ HeyeTodo/
 |------|------|
 | 登录 / 注册页面 | 当前阶段不需要身份系统 |
 | ShellViewModel / ShellView | 导航布局直接合一到 MainWindow |
-| TaskList / Gantt / Planning / Settings 页面 | 当前阶段不保留功能页面 |
+| TaskList / Planning / Settings 等页面 | 当前阶段不保留功能页面 |
 | SplashWindow / MiniGames / RolePanels / RoleSelection | 非核心页面 |
 | Storage 目录（IDataStore / JsonFileDataStore / DataStoreSchema） | 当前阶段不使用存储 |
 | Infrastructure 目录（AppSettings / AppPaths / Navigation / Logging / Localization） | 当前阶段不需要基础设施 |
 | Application 目录（Sync / Tasks / Planning） | 已不适用 |
 | Data 目录（LocalDbContext / Repositories / Entities） | 已不适用 |
-| GanttTaskBar.cs | 依赖旧 ViewModel |
+| 旧任务时间轴控件 | 依赖旧 ViewModel |
 | PixelCozyTheme.axaml | 去美化，回归 Fluent 默认 |
 | NuGet: Microsoft.Extensions.Http | 当前不需要 HTTP 客户端 |
 | NuGet: System.Security.Cryptography.ProtectedData | 当前不需要加密存储 |

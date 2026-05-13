@@ -12,19 +12,41 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 using Scalar.AspNetCore;
+
+const string DevelopmentJwtSigningKey = "HeyeTodo-Development-Signing-Key-Do-Not-Use-In-Production-2026";
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddUserSecrets<Program>(optional: true);
 
 // ─── Configuration ────────────────────────────────────────────
-builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Jwt"));
 builder.Services.Configure<ServerPlanningOptions>(builder.Configuration.GetSection("Planning:ServerProxy"));
 var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() ?? new JwtOptions
 {
     SigningKey = "REPLACE-ME-VIA-USER-SECRETS"
 };
+if (JwtSigningKeyIsWeak(jwtOptions.SigningKey))
+{
+    if (builder.Environment.IsDevelopment())
+    {
+        jwtOptions.SigningKey = DevelopmentJwtSigningKey;
+    }
+    else
+    {
+        throw new InvalidOperationException("Jwt:SigningKey must be configured via user-secrets or environment variables before starting in Production.");
+    }
+}
+
+builder.Services.Configure<JwtOptions>(options =>
+{
+    builder.Configuration.GetSection("Jwt").Bind(options);
+    if (JwtSigningKeyIsWeak(options.SigningKey) && builder.Environment.IsDevelopment())
+    {
+        options.SigningKey = DevelopmentJwtSigningKey;
+    }
+});
 
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
@@ -93,18 +115,9 @@ builder.Services.AddCors(o => o.AddDefaultPolicy(p => p
 
 var app = builder.Build();
 
-if (string.IsNullOrWhiteSpace(jwtOptions.SigningKey)
-    || jwtOptions.SigningKey.StartsWith("REPLACE-ME", StringComparison.Ordinal)
-    || Encoding.UTF8.GetByteCount(jwtOptions.SigningKey) < 32)
+if (jwtOptions.SigningKey == DevelopmentJwtSigningKey)
 {
-    if (app.Environment.IsDevelopment())
-    {
-        app.Logger.LogWarning("Jwt:SigningKey is not configured securely. Use 'dotnet user-secrets' during development.");
-    }
-    else
-    {
-        throw new InvalidOperationException("Jwt:SigningKey must be configured via user-secrets or environment variables before starting in Production.");
-    }
+    app.Logger.LogWarning("Jwt:SigningKey is not configured securely. A development-only fallback key is being used. Use 'dotnet user-secrets' for a stable local key.");
 }
 
 if (allowedOrigins.Length == 0)
@@ -117,7 +130,17 @@ if (allowedOrigins.Length == 0)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    try
+    {
+        db.Database.Migrate();
+    }
+    catch (NpgsqlException exception)
+    {
+        app.Logger.LogCritical(
+            exception,
+            "PostgreSQL is not reachable. For local development, start it with 'docker compose -f deploy/docker-compose.yml up -d postgres' and verify localhost:0427 is accepting connections.");
+        throw;
+    }
 }
 
 if (app.Environment.IsDevelopment())
@@ -141,3 +164,8 @@ app.MapHub<SyncHub>("/ws/sync");
 app.MapGet("/", () => Results.Ok(new { service = "HeyeTodo.Server", status = "ok" }));
 
 app.Run();
+
+static bool JwtSigningKeyIsWeak(string? signingKey)
+    => string.IsNullOrWhiteSpace(signingKey)
+       || signingKey.StartsWith("REPLACE-ME", StringComparison.Ordinal)
+       || Encoding.UTF8.GetByteCount(signingKey) < 32;

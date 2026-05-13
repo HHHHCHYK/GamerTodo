@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using HeyeTodo.Client.Persistence;
+using HeyeTodo.Client.Services;
 
 namespace HeyeTodo.Client.ViewModels;
 
@@ -16,13 +17,17 @@ public sealed partial class TaskPanelViewModel : ViewModelBase
     private const string TasksModuleId = "task.items";
 
     private readonly IPersistenceStore _persistenceStore;
+    private readonly ITaskRepository _taskRepository;
+    private readonly SyncCoordinator _syncCoordinator;
     private CancellationTokenSource? _projectsSaveCancellationTokenSource;
     private CancellationTokenSource? _tasksSaveCancellationTokenSource;
     private bool _isLoading;
 
-    public TaskPanelViewModel(IPersistenceStore persistenceStore)
+    public TaskPanelViewModel(IPersistenceStore persistenceStore, ITaskRepository taskRepository, SyncCoordinator syncCoordinator)
     {
         _persistenceStore = persistenceStore;
+        _taskRepository = taskRepository;
+        _syncCoordinator = syncCoordinator;
         ProjectFilters.Add(new ProjectFilterViewModel(AllProjectsId, "全部"));
         SelectedProjectFilter = ProjectFilters[0];
         _ = LoadAsync();
@@ -159,8 +164,9 @@ public sealed partial class TaskPanelViewModel : ViewModelBase
         }
 
         SelectedTask.StartTime = ToDateTimeOffset(value);
+        SelectedTask.UpdatedAt = DateTimeOffset.UtcNow;
         NotifySelectedTaskDetailsChanged();
-        QueueTasksSave();
+        QueueTaskSave(SelectedTask);
     }
 
     partial void OnSelectedTaskEndDateChanged(DateTime? value)
@@ -171,8 +177,9 @@ public sealed partial class TaskPanelViewModel : ViewModelBase
         }
 
         SelectedTask.EndTime = ToDateTimeOffset(value);
+        SelectedTask.UpdatedAt = DateTimeOffset.UtcNow;
         NotifySelectedTaskDetailsChanged();
-        QueueTasksSave();
+        QueueTaskSave(SelectedTask);
     }
 
     partial void OnSelectedTaskAssigneeNameChanged(string value)
@@ -183,8 +190,9 @@ public sealed partial class TaskPanelViewModel : ViewModelBase
         }
 
         SelectedTask.AssigneeName = value.Trim();
+        SelectedTask.UpdatedAt = DateTimeOffset.UtcNow;
         NotifySelectedTaskDetailsChanged();
-        QueueTasksSave();
+        QueueTaskSave(SelectedTask);
     }
 
     partial void OnSelectedTaskUrgencyChanged(TaskUrgencyOptionViewModel? value)
@@ -195,8 +203,9 @@ public sealed partial class TaskPanelViewModel : ViewModelBase
         }
 
         SelectedTask.Urgency = value.Value;
+        SelectedTask.UpdatedAt = DateTimeOffset.UtcNow;
         NotifySelectedTaskDetailsChanged();
-        QueueTasksSave();
+        QueueTaskSave(SelectedTask);
     }
 
     partial void OnNewTaskStartDateChanged(DateTime? value)
@@ -216,11 +225,20 @@ public sealed partial class TaskPanelViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private void RefreshTasks()
+    private async Task RefreshTasks()
     {
         RefreshVisibleTasks();
-        QueueTasksSave();
-        StatusMessage = "任务排序已刷新";
+        QueueAllTasksSave();
+        StatusMessage = "正在同步";
+        try
+        {
+            StatusMessage = await _syncCoordinator.SyncOnceAsync();
+            await ReloadFromRepositoryAsync();
+        }
+        catch (Exception exception) when (exception is HttpRequestException or InvalidOperationException or Microsoft.Data.Sqlite.SqliteException or IOException)
+        {
+            StatusMessage = $"同步失败，本地任务已保存：{exception.Message}";
+        }
     }
 
     [RelayCommand]
@@ -252,7 +270,7 @@ public sealed partial class TaskPanelViewModel : ViewModelBase
         ProjectFilters.Add(new ProjectFilterViewModel(project.Id, project.Name));
         IsCreateProjectDialogOpen = false;
         StatusMessage = "项目已创建";
-        QueueProjectsSave();
+        QueueProjectSave(project);
     }
 
     [RelayCommand]
@@ -308,7 +326,7 @@ public sealed partial class TaskPanelViewModel : ViewModelBase
         IsCreateTaskDialogOpen = false;
         StatusMessage = "任务已创建";
         RefreshVisibleTasks();
-        QueueTasksSave();
+        QueueTaskSave(task);
     }
 
     [RelayCommand]
@@ -329,14 +347,16 @@ public sealed partial class TaskPanelViewModel : ViewModelBase
     private void ToggleTaskCompleted(TaskItemViewModel task)
     {
         task.IsCompleted = !task.IsCompleted;
+        task.UpdatedAt = DateTimeOffset.UtcNow;
         StatusMessage = task.IsCompleted ? "任务已完成" : "任务已恢复为未完成";
-        QueueTasksSave();
+        QueueTaskSave(task);
     }
 
     public void UpdateTaskSchedule(TaskItemViewModel task, DateTime start, DateTime end)
     {
         task.StartTime = ToDateTimeOffset(start);
         task.EndTime = ToDateTimeOffset(end);
+        task.UpdatedAt = DateTimeOffset.UtcNow;
 
         if (SelectedTask == task)
         {
@@ -349,7 +369,7 @@ public sealed partial class TaskPanelViewModel : ViewModelBase
 
         RefreshVisibleTasks();
         StatusMessage = "任务时间已更新";
-        QueueTasksSave();
+        QueueTaskSave(task);
     }
 
     [RelayCommand]
@@ -375,14 +395,15 @@ public sealed partial class TaskPanelViewModel : ViewModelBase
             return;
         }
 
-        Tasks.Remove(SelectedTask);
-        VisibleTasks.Remove(SelectedTask);
+        var taskToDelete = SelectedTask;
+        Tasks.Remove(taskToDelete);
+        VisibleTasks.Remove(taskToDelete);
         SelectedTask = null;
         IsDetailsOpen = false;
         IsDeleteConfirmOpen = false;
         StatusMessage = "任务已删除";
         OnPropertyChanged(nameof(HasNoVisibleTasks));
-        QueueTasksSave();
+        _ = DeleteTaskAsync(taskToDelete);
     }
 
     private async Task LoadAsync()
@@ -392,59 +413,57 @@ public sealed partial class TaskPanelViewModel : ViewModelBase
 
         try
         {
-            var projectsState = await _persistenceStore.LoadAsync<TaskProjectsPersistenceState>(ProjectsModuleId);
-            if (projectsState is not null)
+            await _taskRepository.InitializeAsync();
+            var workspace = await _taskRepository.LoadWorkspaceAsync();
+            if (workspace.Projects.Count == 0 && workspace.Tasks.Count == 0)
             {
-                foreach (var project in projectsState.Projects)
-                {
-                    if (string.IsNullOrWhiteSpace(project.Id))
-                    {
-                        continue;
-                    }
+                workspace = await TryImportLegacyJsonAsync();
+            }
 
-                    Projects.Add(new ProjectItemViewModel(project.Id, project.Name, project.Description));
+            foreach (var project in workspace.Projects)
+            {
+                if (string.IsNullOrWhiteSpace(project.Id))
+                {
+                    continue;
                 }
+
+                Projects.Add(new ProjectItemViewModel(project.Id, project.Name, project.Description)
+                {
+                    CreatedAt = project.CreatedAt,
+                    UpdatedAt = project.UpdatedAt,
+                    ServerVersion = project.ServerVersion
+                });
+            }
+
+            RebuildProjectFilters();
+
+            foreach (var task in workspace.Tasks)
+            {
+                if (string.IsNullOrWhiteSpace(task.Id))
+                {
+                    continue;
+                }
+
+                var projectName = ResolveProjectName(task.ProjectId, task.ProjectNameSnapshot);
+                var taskViewModel = new TaskItemViewModel(task.Id, task.ProjectId, projectName, task.Name, task.Description, task.CreatedAt)
+                {
+                    IsCompleted = task.IsCompleted,
+                    SortId = task.SortId,
+                    StartTime = task.StartTime,
+                    EndTime = task.EndTime,
+                    AssigneeName = task.AssigneeName,
+                    Urgency = task.Urgency,
+                    UpdatedAt = task.UpdatedAt,
+                    ServerVersion = task.ServerVersion
+                };
+
+                Tasks.Add(taskViewModel);
             }
         }
-        catch (PersistenceException exception)
+        catch (Exception exception) when (exception is PersistenceException or Microsoft.Data.Sqlite.SqliteException or IOException)
         {
             hasError = true;
-            StatusMessage = exception.Message;
-        }
-
-        RebuildProjectFilters();
-
-        try
-        {
-            var tasksState = await _persistenceStore.LoadAsync<TaskItemsPersistenceState>(TasksModuleId);
-            if (tasksState is not null)
-            {
-                foreach (var task in tasksState.Tasks)
-                {
-                    if (string.IsNullOrWhiteSpace(task.Id))
-                    {
-                        continue;
-                    }
-
-                    var projectName = ResolveProjectName(task.ProjectId, task.ProjectNameSnapshot);
-                    var taskViewModel = new TaskItemViewModel(task.Id, task.ProjectId, projectName, task.Name, task.Description, task.CreatedAt)
-                    {
-                        IsCompleted = task.IsCompleted,
-                        SortId = task.SortId,
-                        StartTime = task.StartTime,
-                        EndTime = task.EndTime,
-                        AssigneeName = task.AssigneeName,
-                        Urgency = task.Urgency
-                    };
-
-                    Tasks.Add(taskViewModel);
-                }
-            }
-        }
-        catch (PersistenceException exception)
-        {
-            hasError = true;
-            StatusMessage = exception.Message;
+            StatusMessage = $"任务数据库读取失败：{exception.Message}";
         }
         finally
         {
@@ -563,7 +582,101 @@ public sealed partial class TaskPanelViewModel : ViewModelBase
         }
     }
 
-    private void QueueProjectsSave()
+    private async Task<TaskWorkspaceState> TryImportLegacyJsonAsync()
+    {
+        var projectsState = await _persistenceStore.LoadAsync<TaskProjectsPersistenceState>(ProjectsModuleId);
+        var tasksState = await _persistenceStore.LoadAsync<TaskItemsPersistenceState>(TasksModuleId);
+
+        if (projectsState is null && tasksState is null)
+        {
+            return new TaskWorkspaceState([], []);
+        }
+
+        var projects = (projectsState?.Projects ?? [])
+            .Where(project => !string.IsNullOrWhiteSpace(project.Id))
+            .Select(project =>
+            {
+                var now = DateTimeOffset.UtcNow;
+                return new TaskProjectRecord(project.Id, project.Name, project.Description, now, now, 0, null);
+            })
+            .ToList();
+
+        var tasks = (tasksState?.Tasks ?? [])
+            .Where(task => !string.IsNullOrWhiteSpace(task.Id))
+            .Select(task =>
+            {
+                var now = DateTimeOffset.UtcNow;
+                return new TaskItemRecord(
+                    task.Id,
+                    task.ProjectId,
+                    task.ProjectNameSnapshot,
+                    task.Name,
+                    task.Description,
+                    task.IsCompleted,
+                    task.SortId,
+                    task.CreatedAt,
+                    now,
+                    task.StartTime,
+                    task.EndTime,
+                    task.AssigneeName,
+                    task.Urgency,
+                    0,
+                    null);
+            })
+            .ToList();
+
+        var imported = new TaskWorkspaceState(projects, tasks);
+        await _taskRepository.ReplaceWorkspaceFromLocalImportAsync(imported);
+        return imported;
+    }
+
+    private async Task ReloadFromRepositoryAsync()
+    {
+        _isLoading = true;
+        try
+        {
+            var workspace = await _taskRepository.LoadWorkspaceAsync();
+            Projects.Clear();
+            Tasks.Clear();
+            VisibleTasks.Clear();
+
+            foreach (var project in workspace.Projects)
+            {
+                Projects.Add(new ProjectItemViewModel(project.Id, project.Name, project.Description)
+                {
+                    CreatedAt = project.CreatedAt,
+                    UpdatedAt = project.UpdatedAt,
+                    ServerVersion = project.ServerVersion
+                });
+            }
+
+            RebuildProjectFilters();
+
+            foreach (var task in workspace.Tasks)
+            {
+                var projectName = ResolveProjectName(task.ProjectId, task.ProjectNameSnapshot);
+                Tasks.Add(new TaskItemViewModel(task.Id, task.ProjectId, projectName, task.Name, task.Description, task.CreatedAt)
+                {
+                    IsCompleted = task.IsCompleted,
+                    SortId = task.SortId,
+                    StartTime = task.StartTime,
+                    EndTime = task.EndTime,
+                    AssigneeName = task.AssigneeName,
+                    Urgency = task.Urgency,
+                    UpdatedAt = task.UpdatedAt,
+                    ServerVersion = task.ServerVersion
+                });
+            }
+
+            RefreshVisibleTasks(false);
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void QueueProjectSave(ProjectItemViewModel project)
     {
         if (_isLoading)
         {
@@ -575,10 +688,10 @@ public sealed partial class TaskPanelViewModel : ViewModelBase
         _projectsSaveCancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = _projectsSaveCancellationTokenSource.Token;
 
-        _ = SaveProjectsAfterDelayAsync(cancellationToken);
+        _ = SaveProjectAfterDelayAsync(project, cancellationToken);
     }
 
-    private void QueueTasksSave()
+    private void QueueTaskSave(TaskItemViewModel task)
     {
         if (_isLoading)
         {
@@ -590,83 +703,114 @@ public sealed partial class TaskPanelViewModel : ViewModelBase
         _tasksSaveCancellationTokenSource = new CancellationTokenSource();
         var cancellationToken = _tasksSaveCancellationTokenSource.Token;
 
-        _ = SaveTasksAfterDelayAsync(cancellationToken);
+        _ = SaveTaskAfterDelayAsync(task, cancellationToken);
     }
 
-    private async Task SaveProjectsAfterDelayAsync(CancellationToken cancellationToken)
+    private void QueueAllTasksSave()
+    {
+        if (_isLoading)
+        {
+            return;
+        }
+
+        _tasksSaveCancellationTokenSource?.Cancel();
+        _tasksSaveCancellationTokenSource?.Dispose();
+        _tasksSaveCancellationTokenSource = new CancellationTokenSource();
+        var cancellationToken = _tasksSaveCancellationTokenSource.Token;
+
+        _ = SaveAllTasksAfterDelayAsync(cancellationToken);
+    }
+
+    private async Task SaveProjectAfterDelayAsync(ProjectItemViewModel project, CancellationToken cancellationToken)
     {
         try
         {
             StatusMessage = "正在保存项目";
             await Task.Delay(400, cancellationToken);
-            await _persistenceStore.SaveAsync(ProjectsModuleId, BuildProjectsState(), cancellationToken);
+            project.UpdatedAt = DateTimeOffset.UtcNow;
+            await _taskRepository.SaveProjectAsync(ToProjectRecord(project), enqueueSyncChange: true, cancellationToken);
             StatusMessage = "项目已保存";
         }
         catch (OperationCanceledException)
         {
         }
-        catch (PersistenceException exception)
+        catch (Exception exception) when (exception is PersistenceException or Microsoft.Data.Sqlite.SqliteException or IOException)
         {
-            StatusMessage = exception.Message;
+            StatusMessage = $"项目保存失败：{exception.Message}";
         }
     }
 
-    private async Task SaveTasksAfterDelayAsync(CancellationToken cancellationToken)
+    private async Task SaveTaskAfterDelayAsync(TaskItemViewModel task, CancellationToken cancellationToken)
     {
         try
         {
             StatusMessage = "正在保存任务";
             await Task.Delay(400, cancellationToken);
-            await _persistenceStore.SaveAsync(TasksModuleId, BuildTasksState(), cancellationToken);
+            await _taskRepository.SaveTaskAsync(ToTaskRecord(task), enqueueSyncChange: true, cancellationToken);
             StatusMessage = "任务已保存";
         }
         catch (OperationCanceledException)
         {
         }
-        catch (PersistenceException exception)
+        catch (Exception exception) when (exception is PersistenceException or Microsoft.Data.Sqlite.SqliteException or IOException)
         {
-            StatusMessage = exception.Message;
+            StatusMessage = $"任务保存失败：{exception.Message}";
         }
     }
 
-    private TaskProjectsPersistenceState BuildProjectsState()
+    private async Task SaveAllTasksAfterDelayAsync(CancellationToken cancellationToken)
     {
-        return new TaskProjectsPersistenceState
+        try
         {
-            Version = 1,
-            Projects = Projects
-                .Select(project => new TaskProjectPersistenceItem
-                {
-                    Id = project.Id,
-                    Name = project.Name,
-                    Description = project.Description
-                })
-                .ToList()
-        };
+            StatusMessage = "正在保存任务";
+            await Task.Delay(400, cancellationToken);
+            foreach (var task in Tasks)
+            {
+                task.UpdatedAt = DateTimeOffset.UtcNow;
+                await _taskRepository.SaveTaskAsync(ToTaskRecord(task), enqueueSyncChange: true, cancellationToken);
+            }
+
+            StatusMessage = "任务已保存";
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception exception) when (exception is PersistenceException or Microsoft.Data.Sqlite.SqliteException or IOException)
+        {
+            StatusMessage = $"任务保存失败：{exception.Message}";
+        }
     }
 
-    private TaskItemsPersistenceState BuildTasksState()
+    private async Task DeleteTaskAsync(TaskItemViewModel task)
     {
-        return new TaskItemsPersistenceState
+        try
         {
-            Version = 1,
-            Tasks = Tasks
-                .Select(task => new TaskItemPersistenceItem
-                {
-                    Id = task.Id,
-                    ProjectId = task.ProjectId,
-                    ProjectNameSnapshot = task.ProjectName,
-                    Name = task.Name,
-                    Description = task.Description,
-                    IsCompleted = task.IsCompleted,
-                    SortId = task.SortId,
-                    CreatedAt = task.CreatedAt,
-                    StartTime = task.StartTime,
-                    EndTime = task.EndTime,
-                    AssigneeName = task.AssigneeName,
-                    Urgency = task.Urgency
-                })
-                .ToList()
-        };
+            await _taskRepository.SoftDeleteTaskAsync(task.Id, DateTimeOffset.UtcNow);
+        }
+        catch (Exception exception) when (exception is PersistenceException or Microsoft.Data.Sqlite.SqliteException or IOException)
+        {
+            StatusMessage = $"任务删除保存失败：{exception.Message}";
+        }
     }
+
+    private static TaskProjectRecord ToProjectRecord(ProjectItemViewModel project)
+        => new(project.Id, project.Name, project.Description, project.CreatedAt, project.UpdatedAt, project.ServerVersion, null);
+
+    private static TaskItemRecord ToTaskRecord(TaskItemViewModel task)
+        => new(
+            task.Id,
+            task.ProjectId,
+            task.ProjectName,
+            task.Name,
+            task.Description,
+            task.IsCompleted,
+            task.SortId,
+            task.CreatedAt,
+            task.UpdatedAt,
+            task.StartTime,
+            task.EndTime,
+            task.AssigneeName,
+            task.Urgency,
+            task.ServerVersion,
+            null);
 }

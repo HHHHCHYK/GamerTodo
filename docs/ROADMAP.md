@@ -46,12 +46,11 @@
 - LWW conflict resolution + tombstones
 - SignalR project subscription and live invalidation
 
-## M4 Gantt
+## M4 Timeline View (deferred)
 
-- shared task datasource for list + gantt
-- timeline canvas
-- dependency lines
-- task drag / resize editing
+- timeline scheduling view removed from the current product scope
+- keep task start / end dates in the task model for list editing and planning
+- revisit a timeline experience only after the core task, sync, role, and planning flows are stable
 
 ## M5 Role Panels
 

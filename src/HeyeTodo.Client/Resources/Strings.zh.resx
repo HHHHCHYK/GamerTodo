@@ -36,7 +36,6 @@
   <data name="App.Title" xml:space="preserve"><value>黑夜待办</value></data>
   <data name="App.Tagline" xml:space="preserve"><value>为独立游戏开发者打造的待办与协同工具。</value></data>
   <data name="Nav.Tasks" xml:space="preserve"><value>任务</value></data>
-  <data name="Nav.Gantt" xml:space="preserve"><value>甘特图</value></data>
   <data name="Nav.RolePanels" xml:space="preserve"><value>角色面板</value></data>
   <data name="Nav.Planning" xml:space="preserve"><value>规划</value></data>
   <data name="Nav.MiniGames" xml:space="preserve"><value>小游戏</value></data>

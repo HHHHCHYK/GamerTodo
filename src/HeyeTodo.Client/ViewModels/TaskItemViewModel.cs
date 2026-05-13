@@ -13,7 +13,7 @@ public sealed partial class TaskItemViewModel : ViewModelBase
     private static readonly IBrush CompletedCheckForeground = Brush.Parse("#FFFFFB");
 
     public TaskItemViewModel(string projectId, string projectName, string name, string description)
-        : this(Guid.NewGuid().ToString("N"), projectId, projectName, name, description, DateTimeOffset.Now)
+        : this(Guid.NewGuid().ToString("D"), projectId, projectName, name, description, DateTimeOffset.UtcNow)
     {
     }
 
@@ -35,6 +35,10 @@ public sealed partial class TaskItemViewModel : ViewModelBase
     public string ProjectName { get; }
 
     public DateTimeOffset CreatedAt { get; }
+
+    public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+
+    public long ServerVersion { get; set; }
 
     public TextDecorationCollection? TitleTextDecorations => IsCompleted ? TextDecorations.Strikethrough : null;
 

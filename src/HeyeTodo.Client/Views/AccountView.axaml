@@ -1,0 +1,52 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:HeyeTodo.Client.ViewModels"
+             x:Class="HeyeTodo.Client.Views.AccountView"
+             x:DataType="vm:AccountViewModel">
+    <Grid RowDefinitions="Auto,*" RowSpacing="18">
+        <StackPanel Spacing="4">
+            <TextBlock Text="账号与同步" FontSize="28" FontWeight="Bold"/>
+            <TextBlock Text="{Binding StatusMessage}"
+                       Foreground="{StaticResource SecondaryTextBrush}"
+                       TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <Border Grid.Row="1"
+                Padding="22"
+                Background="{StaticResource SurfaceWarmBrush}"
+                BorderBrush="{StaticResource SoftBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="22"
+                VerticalAlignment="Top">
+            <StackPanel Spacing="14" MaxWidth="520">
+                <TextBox PlaceholderText="服务器地址"
+                         Text="{Binding ServerBaseUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Classes.WarmInput="True"/>
+                <TextBox PlaceholderText="邮箱"
+                         Text="{Binding Email, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Classes.WarmInput="True"/>
+                <TextBox PlaceholderText="密码"
+                         PasswordChar="*"
+                         Text="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Classes.WarmInput="True"/>
+                <TextBox PlaceholderText="显示名称（注册时使用）"
+                         Text="{Binding DisplayName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Classes.WarmInput="True"/>
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <Button Content="登录"
+                            Command="{Binding LoginCommand}"
+                            IsEnabled="{Binding !IsBusy}"
+                            Classes.NavigationCard="True"/>
+                    <Button Content="注册"
+                            Command="{Binding RegisterCommand}"
+                            IsEnabled="{Binding !IsBusy}"
+                            Classes.NavigationCard="True"/>
+                    <Button Content="退出"
+                            Command="{Binding LogoutCommand}"
+                            IsEnabled="{Binding !IsBusy}"
+                            Classes.NavigationCard="True"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

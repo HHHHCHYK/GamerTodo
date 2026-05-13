@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -8,6 +8,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeyeTodo.Client", "src\HeyeTodo.Client\HeyeTodo.Client.csproj", "{6F304886-A65B-4DD9-AA53-47FD76662266}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeyeTodo.Shared", "src\HeyeTodo.Shared\HeyeTodo.Shared.csproj", "{F7B5061F-9F5F-4465-8E7C-463DD6D74BD8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeyeTodo.Server", "src\HeyeTodo.Server\HeyeTodo.Server.csproj", "{07253C25-8E19-425A-A7F5-5DC5A7D93BAF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,6 +45,18 @@ Global
 		{F7B5061F-9F5F-4465-8E7C-463DD6D74BD8}.Release|x64.Build.0 = Release|Any CPU
 		{F7B5061F-9F5F-4465-8E7C-463DD6D74BD8}.Release|x86.ActiveCfg = Release|Any CPU
 		{F7B5061F-9F5F-4465-8E7C-463DD6D74BD8}.Release|x86.Build.0 = Release|Any CPU
+		{07253C25-8E19-425A-A7F5-5DC5A7D93BAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07253C25-8E19-425A-A7F5-5DC5A7D93BAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07253C25-8E19-425A-A7F5-5DC5A7D93BAF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{07253C25-8E19-425A-A7F5-5DC5A7D93BAF}.Debug|x64.Build.0 = Debug|Any CPU
+		{07253C25-8E19-425A-A7F5-5DC5A7D93BAF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{07253C25-8E19-425A-A7F5-5DC5A7D93BAF}.Debug|x86.Build.0 = Debug|Any CPU
+		{07253C25-8E19-425A-A7F5-5DC5A7D93BAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07253C25-8E19-425A-A7F5-5DC5A7D93BAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07253C25-8E19-425A-A7F5-5DC5A7D93BAF}.Release|x64.ActiveCfg = Release|Any CPU
+		{07253C25-8E19-425A-A7F5-5DC5A7D93BAF}.Release|x64.Build.0 = Release|Any CPU
+		{07253C25-8E19-425A-A7F5-5DC5A7D93BAF}.Release|x86.ActiveCfg = Release|Any CPU
+		{07253C25-8E19-425A-A7F5-5DC5A7D93BAF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -50,5 +64,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{6F304886-A65B-4DD9-AA53-47FD76662266} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{F7B5061F-9F5F-4465-8E7C-463DD6D74BD8} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
+		{07253C25-8E19-425A-A7F5-5DC5A7D93BAF} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

@@ -1,5 +1,7 @@
 using System;
+using System.Net.Http;
 using HeyeTodo.Client.Persistence;
+using HeyeTodo.Client.Services;
 using HeyeTodo.Client.ViewModels;
 using HeyeTodo.Client.Views;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,13 +18,18 @@ public static class AppHost
 
         services.AddSingleton<Views.MainWindow>();
         services.AddSingleton<IPersistenceStore, FilePersistenceStore>();
+        services.AddSingleton<ITaskRepository, SqliteTaskRepository>();
+        services.AddSingleton<IClientSessionStore, ClientSessionStore>();
+        services.AddSingleton(new HttpClient());
+        services.AddSingleton<HeyeTodoApiClient>();
+        services.AddSingleton<SyncCoordinator>();
         services.AddSingleton<MainWindowViewModel>();
+        services.AddSingleton<AccountViewModel>();
         services.AddSingleton<TestPageViewModel>();
         services.AddSingleton<TaskPanelViewModel>();
-        services.AddSingleton<GanttChartViewModel>();
+        services.AddTransient<AccountView>();
         services.AddTransient<TestPageView>();
         services.AddTransient<TaskPanelView>();
-        services.AddTransient<GanttChartView>();
 
         Services = services.BuildServiceProvider();
     }

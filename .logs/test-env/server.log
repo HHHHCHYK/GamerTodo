@@ -1,0 +1,13 @@
+从 /Users/hykal311/Project/Other/GamerTodo/src/HeyeTodo.Server/Properties/launchSettings.json 使用启动设置...
+warn: HeyeTodo.Server[0]
+      Jwt:SigningKey is not configured securely. A development-only fallback key is being used. Use 'dotnet user-secrets' for a stable local key.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5254
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: /Users/hykal311/Project/Other/GamerTodo/src/HeyeTodo.Server
+info: Microsoft.Hosting.Lifetime[0]
+      Application is shutting down...

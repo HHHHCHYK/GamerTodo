@@ -17,7 +17,6 @@ A TODO and project-management tool tailor-made for **indie game developers**. Cr
 - **Multi-user with real sync** — register once, log in on any device, and your tasks follow you. SignalR keeps every client up-to-date in real time.
 - **Local-first, always available** — all your data lives in a local SQLite store. You can work offline without interruption, and changes sync automatically when you reconnect.
 - **List view** — filter, sort, search, and manage tasks the classic way. Create projects, add tasks with priorities and dates, and advance them through a full status pipeline (Backlog → Todo → In Progress → Blocked → Review → Done / Cancelled).
-- **Gantt view** — see your project on a timeline. Drag tasks to adjust dates, zoom in and out, and visualize dependencies between tasks.
 - **Role panels** — pick your role (Producer, Designer, Artist, Programmer, Sound Designer) and the UI adapts. Each role brings its own fields, actions, and dashboard widgets that make sense for that discipline.
 - **Smart planning** — a rule-based engine reorders tasks by priority and dependency chains. Optionally hook in an LLM (server-proxy or your own API key) for AI-assisted planning suggestions.
 - **Mini-games** — a reserved space for small relaxation games (coming in a future release).
@@ -67,7 +66,6 @@ Once inside, the left sidebar gives you quick access to every area:
 | Section | What it does |
 |---|---|
 | **Tasks** | List view for creating and managing tasks |
-| **Gantt** | Timeline view of your project schedule |
 | **Role panels** | Role-specific dashboards, fields, and actions |
 | **Planning** | Auto-ordering and AI-assisted planning |
 | **Mini-games** | Relaxation corner (placeholder for now) |
@@ -85,18 +83,6 @@ The **Tasks** view is your daily command center.
 - **Include completed** — toggle visibility of done and cancelled tasks.
 
 > Tasks save locally first, then sync to the server. If you are offline, you will see a "Saved locally" notice — everything will sync once you reconnect.
-
-### Gantt chart
-
-Switch to the **Gantt** view to see your project laid out across time.
-
-- Select a project from the dropdown and click **Refresh**.
-- Each task appears as a horizontal bar on the timeline, positioned by its start and end dates.
-- **Dependency lines** connect tasks that depend on one another.
-- Use **+ / −** buttons to zoom the timeline in and out.
-- Drag task bars to adjust dates directly on the chart.
-
-> Both the list view and the Gantt view operate on the same data — changes you make in one are immediately reflected in the other.
 
 ### Role panels
 
