@@ -19,8 +19,10 @@ public static class AppHost
         services.AddSingleton<MainWindowViewModel>();
         services.AddSingleton<TestPageViewModel>();
         services.AddSingleton<TaskPanelViewModel>();
+        services.AddSingleton<GanttChartViewModel>();
         services.AddTransient<TestPageView>();
         services.AddTransient<TaskPanelView>();
+        services.AddTransient<GanttChartView>();
 
         Services = services.BuildServiceProvider();
     }

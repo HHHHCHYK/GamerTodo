@@ -333,6 +333,25 @@ public sealed partial class TaskPanelViewModel : ViewModelBase
         QueueTasksSave();
     }
 
+    public void UpdateTaskSchedule(TaskItemViewModel task, DateTime start, DateTime end)
+    {
+        task.StartTime = ToDateTimeOffset(start);
+        task.EndTime = ToDateTimeOffset(end);
+
+        if (SelectedTask == task)
+        {
+            _isLoading = true;
+            SelectedTaskStartDate = start;
+            SelectedTaskEndDate = end;
+            _isLoading = false;
+            NotifySelectedTaskDetailsChanged();
+        }
+
+        RefreshVisibleTasks();
+        StatusMessage = "任务时间已更新";
+        QueueTasksSave();
+    }
+
     [RelayCommand]
     private void RequestDeleteTask()
     {

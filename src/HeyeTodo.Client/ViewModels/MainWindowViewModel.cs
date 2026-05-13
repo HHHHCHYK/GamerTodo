@@ -6,12 +6,13 @@ namespace HeyeTodo.Client.ViewModels;
 
 public sealed partial class MainWindowViewModel : ViewModelBase
 {
-    public MainWindowViewModel(TestPageViewModel testPage, TaskPanelViewModel taskPanel)
+    public MainWindowViewModel(TestPageViewModel testPage, TaskPanelViewModel taskPanel, GanttChartViewModel ganttChart)
     {
         NavigationItems = new ObservableCollection<NavigationItemViewModel>
         {
             new("测试界面", "●", testPage),
             new("任务面板", "✓", taskPanel),
+            new("甘特图", "▦", ganttChart),
         };
 
         SelectNavigationItem(NavigationItems[0]);
