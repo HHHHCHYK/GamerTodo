@@ -5,11 +5,11 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeyeTodo.Client", "src\HeyeTodo.Client\HeyeTodo.Client.csproj", "{6F304886-A65B-4DD9-AA53-47FD76662266}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GamerTodo.Client", "src\GamerTodo.Client\GamerTodo.Client.csproj", "{6F304886-A65B-4DD9-AA53-47FD76662266}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeyeTodo.Shared", "src\HeyeTodo.Shared\HeyeTodo.Shared.csproj", "{F7B5061F-9F5F-4465-8E7C-463DD6D74BD8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GamerTodo.Shared", "shared\GamerTodo.Shared\GamerTodo.Shared.csproj", "{F7B5061F-9F5F-4465-8E7C-463DD6D74BD8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeyeTodo.Server", "src\HeyeTodo.Server\HeyeTodo.Server.csproj", "{07253C25-8E19-425A-A7F5-5DC5A7D93BAF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GamerTodo.Server", "src\GamerTodo.Server\GamerTodo.Server.csproj", "{07253C25-8E19-425A-A7F5-5DC5A7D93BAF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

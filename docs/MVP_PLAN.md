@@ -1,8 +1,8 @@
-# HeyeTodo MVP Completion Plan
+# GamerTodo MVP Completion Plan
 
 ## Summary
 
-The MVP goal is to ship a usable HeyeTodo build where the server can be deployed independently, desktop clients can sync remotely across devices, and users have basic project and task management.
+The MVP goal is to ship a usable GamerTodo build where the server can be deployed independently, desktop clients can sync remotely across devices, and users have basic project and task management.
 
 Use the planned local-first approach: the client stores task data in local SQLite, supports offline edits, and syncs through an outbox/push/pull flow when a server account is connected.
 
@@ -16,9 +16,9 @@ Current repo assessment:
 
 ### 1. Restore Buildable Shared Contracts
 
-- Add the missing shared contracts, enums, and sync DTOs referenced by the server under `src/HeyeTodo.Shared`.
+- Add the missing shared contracts, enums, and sync DTOs referenced by the server under `shared/GamerTodo.Shared`.
 - Keep shared types as the single protocol source for both client and server.
-- Confirm `dotnet restore HeyeTodo.sln` and `dotnet build HeyeTodo.sln` pass before larger feature work.
+- Confirm `dotnet restore GamerTodo.sln` and `dotnet build GamerTodo.sln` pass before larger feature work.
 - Align the current EF Core migrations with the entity model so a fresh server deployment can start cleanly.
 
 ### 2. Complete Server MVP Deployment
@@ -143,8 +143,8 @@ Use MVP-level last-write-wins conflict handling.
 Run:
 
 ```bash
-dotnet restore HeyeTodo.sln
-dotnet build HeyeTodo.sln
+dotnet restore GamerTodo.sln
+dotnet build GamerTodo.sln
 ```
 
 ### Server Deployment Validation
@@ -197,7 +197,7 @@ Validate:
 ## Implementation Progress - 2026-05-13
 
 - Added shared auth, task, sync, planning contracts plus shared enums so client and server compile against one protocol layer.
-- Added the server project to `HeyeTodo.sln`, so `dotnet build HeyeTodo.sln` now validates server, client, and shared projects together.
+- Added the server project to `GamerTodo.sln`, so `dotnet build GamerTodo.sln` now validates server, client, and shared projects together.
 - Added a client SQLite local-first repository for projects, tasks, sync metadata, outbox changes, and auth/session settings.
 - Updated the task panel to load from SQLite, import legacy JSON state once, persist local edits immediately, and enqueue sync changes.
 - Added a minimal account/sync page for server URL, login, register, logout, and saved session status.

@@ -4,9 +4,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 ROOT="$SCRIPT_DIR"
 COMPOSE_FILE="$ROOT/deploy/docker-compose.yml"
-SOLUTION_FILE="$ROOT/HeyeTodo.sln"
-SERVER_DIR="$ROOT/src/HeyeTodo.Server"
-CLIENT_DIR="$ROOT/src/HeyeTodo.Client"
+SOLUTION_FILE="$ROOT/GamerTodo.sln"
+SERVER_DIR="$ROOT/src/GamerTodo.Server"
+CLIENT_DIR="$ROOT/src/GamerTodo.Client"
+SHARED_DIR="$ROOT/shared/GamerTodo.Shared"
 POSTGRES_PORT=0427
 SERVER_PORT=5254
 AVALONIA_BUILD_DIR="$HOME/Library/Application Support/AvaloniaUI/BuildServices"
@@ -89,7 +90,7 @@ list_port_owners() {
 }
 
 is_client_running() {
-    ps -axo comm=,args= | awk '$1 ~ /(^|\/)dotnet$/ && $0 ~ /HeyeTodo\.Client/ { found = 1 } END { exit found ? 0 : 1 }'
+    ps -axo comm=,args= | awk '$1 ~ /(^|\/)dotnet$/ && $0 ~ /GamerTodo\.Client/ { found = 1 } END { exit found ? 0 : 1 }'
 }
 
 open_terminal_command() {
@@ -129,7 +130,7 @@ wait_for_docker() {
 
 wait_for_postgres() {
     for _ in {1..45}; do
-        if docker compose -f "$COMPOSE_FILE" exec -T postgres pg_isready -U heyetodo -d heyetodo &>/dev/null; then
+        if docker compose -f "$COMPOSE_FILE" exec -T postgres pg_isready -U gamertodo -d gamertodo &>/dev/null; then
             echo "PostgreSQL is ready."
             return 0
         fi
@@ -162,14 +163,15 @@ assets_missing() {
 }
 
 build_outputs_missing() {
-    [[ ! -f "$SERVER_DIR/bin/Debug/net10.0/HeyeTodo.Server.dll" || ! -f "$CLIENT_DIR/bin/Debug/net10.0/HeyeTodo.Client.dll" ]]
+    [[ ! -f "$SERVER_DIR/bin/Debug/net10.0/GamerTodo.Server.dll" || ! -f "$CLIENT_DIR/bin/Debug/net10.0/GamerTodo.Client.dll" ]]
 }
 
 print_step 1 "Checking project files"
 ensure_file_exists "$COMPOSE_FILE" "Compose file"
 ensure_file_exists "$SOLUTION_FILE" "Solution file"
-ensure_file_exists "$SERVER_DIR/HeyeTodo.Server.csproj" "Server project"
-ensure_file_exists "$CLIENT_DIR/HeyeTodo.Client.csproj" "Client project"
+ensure_file_exists "$SHARED_DIR/GamerTodo.Shared.csproj" "Shared submodule project"
+ensure_file_exists "$SERVER_DIR/GamerTodo.Server.csproj" "Server project"
+ensure_file_exists "$CLIENT_DIR/GamerTodo.Client.csproj" "Client project"
 
 print_step 2 "Checking required tools"
 ensure_command_exists docker
@@ -214,7 +216,7 @@ wait_for_postgres || fail "PostgreSQL did not become ready in time."
 
 if [[ "$START_SERVER" == "false" ]]; then
     echo ""
-    echo "HeyeTodo test environment partially started."
+    echo "GamerTodo test environment partially started."
     echo "- PostgreSQL: localhost:$POSTGRES_PORT via Docker Compose service 'postgres'"
     echo ""
     echo "To stop PostgreSQL: docker compose -f '$COMPOSE_FILE' stop postgres"
@@ -235,20 +237,20 @@ fi
 if server_is_healthy; then
     echo "Server is already healthy at http://localhost:$SERVER_PORT."
 elif is_port_listening "$SERVER_PORT"; then
-    echo "Port $SERVER_PORT is already in use, but HeyeTodo Server health check failed:"
+    echo "Port $SERVER_PORT is already in use, but GamerTodo Server health check failed:"
     list_port_owners "$SERVER_PORT"
-    fail "Stop the process on port $SERVER_PORT before starting HeyeTodo Server."
+    fail "Stop the process on port $SERVER_PORT before starting GamerTodo Server."
 else
     SERVER_LOG="$LOG_DIR/server.log"
     SERVER_CMD="dotnet run --no-restore --no-build --launch-profile http 2>&1 | tee '$SERVER_LOG'"
     echo "Starting Server in a new Terminal window. Logs: $SERVER_LOG"
-    open_terminal_command "HeyeTodo Server" "$SERVER_DIR" "$SERVER_CMD"
+    open_terminal_command "GamerTodo Server" "$SERVER_DIR" "$SERVER_CMD"
     wait_for_server || fail "Server did not start listening on port $SERVER_PORT in time."
 fi
 
 if [[ "$START_CLIENT" == "false" ]]; then
     echo ""
-    echo "HeyeTodo test environment started."
+    echo "GamerTodo test environment started."
     echo "- PostgreSQL: localhost:$POSTGRES_PORT via Docker Compose service 'postgres'"
     echo "- Server:      http://localhost:$SERVER_PORT"
     echo "- Client:      skipped"
@@ -259,16 +261,16 @@ fi
 
 print_step 7 "Starting Client"
 if is_client_running; then
-    echo "HeyeTodo Client is already running. Skipping Client startup."
+    echo "GamerTodo Client is already running. Skipping Client startup."
 else
     CLIENT_LOG="$LOG_DIR/client.log"
-    CLIENT_CMD="dotnet run --no-restore --no-build --project '$CLIENT_DIR/HeyeTodo.Client.csproj' 2>&1 | tee '$CLIENT_LOG'"
+    CLIENT_CMD="dotnet run --no-restore --no-build --project '$CLIENT_DIR/GamerTodo.Client.csproj' 2>&1 | tee '$CLIENT_LOG'"
     echo "Starting Client in a new Terminal window. Logs: $CLIENT_LOG"
-    open_terminal_command "HeyeTodo Client" "$CLIENT_DIR" "$CLIENT_CMD"
+    open_terminal_command "GamerTodo Client" "$CLIENT_DIR" "$CLIENT_CMD"
 fi
 
 echo ""
-echo "HeyeTodo macOS quick start completed."
+echo "GamerTodo macOS quick start completed."
 echo "- PostgreSQL: localhost:$POSTGRES_PORT via Docker Compose service 'postgres'"
 echo "- Server:      http://localhost:$SERVER_PORT"
 echo "- Client:      launched or already running"

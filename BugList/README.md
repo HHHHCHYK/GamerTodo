@@ -1,6 +1,6 @@
 # BugList 文件夹说明
 
-这个文件夹用于记录 HeyeTodo 项目中的 Bug，每*个 Bug 单独用一个 Markdown 文件记录*。
+这个文件夹用于记录 GamerTodo 项目中的 Bug，每*个 Bug 单独用一个 Markdown 文件记录*。
 
 ## 文件命名规范
 

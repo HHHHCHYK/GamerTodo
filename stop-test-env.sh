@@ -99,7 +99,7 @@ stop_pids() {
 
 find_client_pids() {
     ps -axo pid=,comm=,args= 2>/dev/null \
-        | awk '$2 ~ /(^|\/)dotnet$/ && $0 ~ /HeyeTodo\.Client/ { print $1 }'
+        | awk '$2 ~ /(^|\/)dotnet$/ && $0 ~ /GamerTodo\.Client/ { print $1 }'
 }
 
 read_lines_into_array() {
@@ -117,14 +117,14 @@ step=1
 if [[ "$STOP_SERVER" == "true" ]]; then
     print_step "$step" "Stopping Server on port $SERVER_PORT"
     read_lines_into_array server_pids < <(find_port_pids "$SERVER_PORT")
-    stop_pids "HeyeTodo Server" "${server_pids[@]}"
+    stop_pids "GamerTodo Server" "${server_pids[@]}"
     step=$((step + 1))
 fi
 
 if [[ "$STOP_CLIENT" == "true" ]]; then
     print_step "$step" "Stopping Client"
     read_lines_into_array client_pids < <(find_client_pids)
-    stop_pids "HeyeTodo Client" "${client_pids[@]}"
+    stop_pids "GamerTodo Client" "${client_pids[@]}"
     step=$((step + 1))
 fi
 
@@ -142,4 +142,4 @@ if [[ "$STOP_POSTGRES" == "true" ]]; then
 fi
 
 echo ""
-echo "HeyeTodo test environment stopped."
+echo "GamerTodo test environment stopped."

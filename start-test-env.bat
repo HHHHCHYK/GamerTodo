@@ -3,8 +3,9 @@ setlocal EnableExtensions
 
 set "ROOT=%~dp0"
 set "COMPOSE_FILE=%ROOT%deploy\docker-compose.yml"
-set "SERVER_DIR=%ROOT%src\HeyeTodo.Server"
-set "CLIENT_DIR=%ROOT%src\HeyeTodo.Client"
+set "SERVER_DIR=%ROOT%src\GamerTodo.Server"
+set "CLIENT_DIR=%ROOT%src\GamerTodo.Client"
+set "SHARED_DIR=%ROOT%shared\GamerTodo.Shared"
 set "POSTGRES_PORT=0427"
 set "SERVER_PORT=5254"
 
@@ -25,13 +26,19 @@ if not exist "%COMPOSE_FILE%" (
     exit /b 1
 )
 
-if not exist "%SERVER_DIR%\HeyeTodo.Server.csproj" (
+if not exist "%SERVER_DIR%\GamerTodo.Server.csproj" (
     echo Server project not found: "%SERVER_DIR%"
     exit /b 1
 )
 
-if not exist "%CLIENT_DIR%\HeyeTodo.Client.csproj" (
+if not exist "%CLIENT_DIR%\GamerTodo.Client.csproj" (
     echo Client project not found: "%CLIENT_DIR%"
+    exit /b 1
+)
+
+if not exist "%SHARED_DIR%\GamerTodo.Shared.csproj" (
+    echo Shared submodule project not found: "%SHARED_DIR%"
+    echo Run: git submodule update --init --recursive
     exit /b 1
 )
 
@@ -65,16 +72,16 @@ if errorlevel 1 (
     echo Server port %SERVER_PORT% is already listening. Skipping Server startup.
 ) else (
     echo Starting Server...
-    start "HeyeTodo Server" cmd /k cd /d "%SERVER_DIR%" ^&^& dotnet run
+    start "GamerTodo Server" cmd /k cd /d "%SERVER_DIR%" ^&^& dotnet run
 )
 
 echo [5/5] Checking Client process...
 call :IsClientRunning
 if errorlevel 1 (
-    echo HeyeTodo Client is already running. Skipping Client startup.
+    echo GamerTodo Client is already running. Skipping Client startup.
 ) else (
     echo Starting Client...
-    start "HeyeTodo Client" cmd /k cd /d "%CLIENT_DIR%" ^&^& dotnet run --project "%CLIENT_DIR%\HeyeTodo.Client.csproj"
+    start "GamerTodo Client" cmd /k cd /d "%CLIENT_DIR%" ^&^& dotnet run --project "%CLIENT_DIR%\GamerTodo.Client.csproj"
 )
 
 echo.
@@ -93,7 +100,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command "if (Get-NetTCPConnection
 exit /b %errorlevel%
 
 :IsClientRunning
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$client = Get-CimInstance Win32_Process | Where-Object { $_.Name -in @('dotnet.exe', 'HeyeTodo.Client.exe') -and ($_.CommandLine -match 'HeyeTodo\.Client' -or $_.CommandLine -match [regex]::Escape('%CLIENT_DIR%')) }; if ($client) { exit 1 } else { exit 0 }"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$client = Get-CimInstance Win32_Process | Where-Object { $_.Name -in @('dotnet.exe', 'GamerTodo.Client.exe') -and ($_.CommandLine -match 'GamerTodo\.Client' -or $_.CommandLine -match [regex]::Escape('%CLIENT_DIR%')) }; if ($client) { exit 1 } else { exit 0 }"
 exit /b %errorlevel%
 
 :EnsurePortFree
@@ -107,7 +114,7 @@ exit /b 0
 
 :WaitForPostgres
 for /l %%i in (1,1,30) do (
-    docker compose -f "%COMPOSE_FILE%" exec -T postgres pg_isready -U heyetodo -d heyetodo >nul 2>nul
+    docker compose -f "%COMPOSE_FILE%" exec -T postgres pg_isready -U gamertodo -d gamertodo >nul 2>nul
     if not errorlevel 1 (
         echo PostgreSQL is ready.
         exit /b 0

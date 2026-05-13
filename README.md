@@ -1,4 +1,4 @@
-# HeyeTodo
+# GamerTodo
 
 A TODO and project-management tool tailor-made for **indie game developers**. Cross-platform, local-first, and built around how game teams actually work.
 
@@ -24,32 +24,32 @@ A TODO and project-management tool tailor-made for **indie game developers**. Cr
 
 ## Download & Install
 
-Grab the latest release from [GitHub Releases](https://github.com/your-org/HeyeTodo/releases).
+Grab the latest release from [GitHub Releases](https://github.com/your-org/GamerTodo/releases).
 
 | Platform | Package | Notes |
 |---|---|---|
-| Windows | `HeyeTodo-client-win-x64-<version>.zip` | Portable — unzip and run |
-| Windows | `HeyeTodo-client-win-x64-<version>.msix` | MSIX package |
-| macOS | `HeyeTodo-osx-arm64-<version>.dmg` | Drag to Applications |
+| Windows | `GamerTodo-client-win-x64-<version>.zip` | Portable — unzip and run |
+| Windows | `GamerTodo-client-win-x64-<version>.msix` | MSIX package |
+| macOS | `GamerTodo-osx-arm64-<version>.dmg` | Drag to Applications |
 
 On macOS, after downloading you may need to clear the quarantine flag:
 
 ```bash
-xattr -d com.apple.quarantine /Applications/HeyeTodo.app
+xattr -d com.apple.quarantine /Applications/GamerTodo.app
 ```
 
-> HeyeTodo works best with a server. You can use a shared team server set up by your team, or [self-host your own](#self-hosting). If you are just trying it out, the client can also point at `http://localhost:5254` while running the server locally.
+> GamerTodo works best with a server. You can use a shared team server set up by your team, or [self-host your own](#self-hosting). If you are just trying it out, the client can also point at `http://localhost:5254` while running the server locally.
 
-## Using HeyeTodo
+## Using GamerTodo
 
 ### First launch
 
-When you open HeyeTodo for the first time, you will land on the login screen. You have two options:
+When you open GamerTodo for the first time, you will land on the login screen. You have two options:
 
 - **Register** — pick an email and password, set a display name, and you are in.
 - **Log in** — if you already have an account, just sign in.
 
-After logging in for the first time, HeyeTodo asks which roles you carry on your project:
+After logging in for the first time, GamerTodo asks which roles you carry on your project:
 
 - Producer
 - Designer
@@ -108,7 +108,7 @@ Select a project and a task in the top bar to start editing role-specific fields
 
 The **Planning** view helps you sort out what to work on next.
 
-By default, HeyeTodo uses a **rule-based engine** that orders tasks using topological sort (respecting dependencies) combined with priority weighting. This works offline and requires no configuration.
+By default, GamerTodo uses a **rule-based engine** that orders tasks using topological sort (respecting dependencies) combined with priority weighting. This works offline and requires no configuration.
 
 You can also enable AI-assisted planning in Settings:
 
@@ -137,23 +137,26 @@ Reach Settings from the bottom of the sidebar.
 ## Repository layout
 
 ```
-HeyeTodo/
+GamerTodo/
 ├── src/
-│   ├── HeyeTodo.Shared/    Shared DTOs, enums, contracts
-│   ├── HeyeTodo.Server/    ASP.NET Core backend
-│   └── HeyeTodo.Client/    Avalonia desktop client
+│   ├── GamerTodo.Server/    ASP.NET Core backend
+│   └── GamerTodo.Client/    Avalonia desktop client
+├── shared/
+│   └── GamerTodo.Shared/    Shared DTOs, enums, contracts; submodule in split repos
 ├── deploy/                 Docker Compose & deployment assets
 ├── artifacts/scripts/      Build & packaging scripts
-└── HeyeTodo.sln
+└── GamerTodo.sln
 ```
 
 ## Development
 
 See [AGENTS.md](.agents/README.md) for detailed development setup instructions.
 
+For the planned three-repository split and submodule workflow, see [docs/REPOSITORY_SPLIT.md](docs/REPOSITORY_SPLIT.md).
+
 ## Self-hosting
 
-HeyeTodo is designed for self-hosted deployment.
+GamerTodo is designed for self-hosted deployment.
 
 ### Quick start
 
@@ -193,7 +196,7 @@ When placing the API behind Nginx, Caddy, Traefik, or similar:
 
 Back up at minimum:
 
-- PostgreSQL data volume `heyetodo-postgres-dev-data`
+- PostgreSQL data volume `gamertodo-postgres-dev-data`
 - Deployment configuration values (JWT signing key, CORS settings)
 
 Stop the stack before replacing database files or restoring a Docker volume snapshot.

@@ -1,4 +1,4 @@
-# 黑夜待办 (HeyeTodo)
+# 黑夜待办 (GamerTodo)
 
 专为**独立游戏开发者**设计的待办事项与项目管理工具。跨平台、本地优先，围绕游戏团队的实际工作方式打造。
 
@@ -24,18 +24,18 @@
 
 ## 下载与安装
 
-从 [GitHub Releases](https://github.com/your-org/HeyeTodo/releases) 获取最新版本。
+从 [GitHub Releases](https://github.com/your-org/GamerTodo/releases) 获取最新版本。
 
 | 平台 | 安装包 | 说明 |
 |---|---|---|
-| Windows | `HeyeTodo-client-win-x64-<version>.zip` | 绿色版 — 解压即用 |
-| Windows | `HeyeTodo-client-win-x64-<version>.msix` | MSIX 安装包 |
-| macOS | `HeyeTodo-osx-arm64-<version>.dmg` | 拖入 Applications 即可 |
+| Windows | `GamerTodo-client-win-x64-<version>.zip` | 绿色版 — 解压即用 |
+| Windows | `GamerTodo-client-win-x64-<version>.msix` | MSIX 安装包 |
+| macOS | `GamerTodo-osx-arm64-<version>.dmg` | 拖入 Applications 即可 |
 
 macOS 下载后可能需要清除隔离属性：
 
 ```bash
-xattr -d com.apple.quarantine /Applications/HeyeTodo.app
+xattr -d com.apple.quarantine /Applications/GamerTodo.app
 ```
 
 > 黑夜待办搭配服务端使用效果最佳。你可以连接团队搭建的共享服务端，也可以[自行部署](#自托管部署)。如果只是试用，客户端也可以指向 `http://localhost:5254`，同时在本机运行服务端。
@@ -137,19 +137,22 @@ xattr -d com.apple.quarantine /Applications/HeyeTodo.app
 ## 仓库结构
 
 ```
-HeyeTodo/
+GamerTodo/
 ├── src/
-│   ├── HeyeTodo.Shared/    共享 DTO、枚举、契约
-│   ├── HeyeTodo.Server/    ASP.NET Core 后端
-│   └── HeyeTodo.Client/    Avalonia 桌面客户端
+│   ├── GamerTodo.Server/    ASP.NET Core 后端
+│   └── GamerTodo.Client/    Avalonia 桌面客户端
+├── shared/
+│   └── GamerTodo.Shared/    共享 DTO、枚举、契约；拆仓后作为 submodule
 ├── deploy/                 Docker Compose 与部署资产
 ├── artifacts/scripts/      构建与打包脚本
-└── HeyeTodo.sln
+└── GamerTodo.sln
 ```
 
 ## 开发环境
 
 详细的开发环境搭建说明请参阅 [AGENTS.md](.agents/README.md)。
+
+三仓库拆分和 submodule 工作流请参阅 [docs/REPOSITORY_SPLIT.md](docs/REPOSITORY_SPLIT.md)。
 
 ## 自托管部署
 
@@ -193,7 +196,7 @@ HeyeTodo/
 
 至少备份以下内容：
 
-- PostgreSQL 数据卷 `heyetodo-postgres-dev-data`
+- PostgreSQL 数据卷 `gamertodo-postgres-dev-data`
 - 部署配置值，尤其是 JWT 签名密钥和 CORS 设置
 
 恢复操作前请先停止服务栈，避免数据损坏。

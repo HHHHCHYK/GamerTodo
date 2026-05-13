@@ -1,4 +1,4 @@
-# HeyeTodo 重写计划
+# GamerTodo 重写计划
 
 > **创建日期**: 2026-04-29
 >
@@ -18,11 +18,11 @@
 ## 当前项目结构
 
 ```
-HeyeTodo/
-├── HeyeTodo.sln
+GamerTodo/
+├── GamerTodo.sln
 │
 └── src/
-    ├── HeyeTodo.Shared/
+    ├── GamerTodo.Shared/
     │   └── Models/                     ← 极简数据模型（当前阶段未使用，为后续准备）
     │       ├── TaskModel.cs
     │       ├── TaskState.cs
@@ -31,7 +31,7 @@ HeyeTodo/
     │       ├── UserProfileModel.cs
     │       └── WorkspaceSnapshot.cs
     │
-    └── HeyeTodo.Client/
+    └── GamerTodo.Client/
         ├── ViewModels/
         │   ├── ViewModelBase.cs
         │   ├── MainWindowViewModel.cs    ← 只持有一个 Current 属性
@@ -46,7 +46,7 @@ HeyeTodo/
         ├── AppHost.cs                    ← DI 注册
         ├── ViewLocator.cs
         ├── Program.cs
-        └── HeyeTodo.Client.csproj
+        └── GamerTodo.Client.csproj
 ```
 
 ---
@@ -74,7 +74,7 @@ HeyeTodo/
 
 ```
 ┌──────────────────────────────────────────────┐
-│ HeyeTodo                                     │
+│ GamerTodo                                     │
 ├───────────────┬──────────────────────────────┤
 │  导航栏 (220px) │  主内容区                    │
 │               │                              │
@@ -88,7 +88,7 @@ HeyeTodo/
 ## 构建验证
 
 ```bash
-dotnet build HeyeTodo.sln -v minimal
+dotnet build GamerTodo.sln -v minimal
 # 输出: 在 0.7 秒内生成 已成功
 ```
 

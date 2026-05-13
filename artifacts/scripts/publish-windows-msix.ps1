@@ -7,12 +7,12 @@ param(
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
-$clientProject = Join-Path $root "src\HeyeTodo.Client\HeyeTodo.Client.csproj"
+$clientProject = Join-Path $root "src\GamerTodo.Client\GamerTodo.Client.csproj"
 $packageDir = Join-Path $root $OutputRoot
 $msixRoot = Join-Path $packageDir "msix"
 $manifestPath = Join-Path $msixRoot "AppxManifest.xml"
 $mappingPath = Join-Path $msixRoot "mapping.txt"
-$msixPath = Join-Path $packageDir "HeyeTodo-client-win-x64-$Version.msix"
+$msixPath = Join-Path $packageDir "GamerTodo-client-win-x64-$Version.msix"
 $publishDir = Join-Path $packageDir "client-win-x64-msix"
 $makeAppx = Get-Command makeappx.exe -ErrorAction SilentlyContinue
 
@@ -38,13 +38,13 @@ if ($displayVersion -notmatch '^\d+\.\d+\.\d+\.\d+$') {
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
          xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
          IgnorableNamespaces="uap">
-  <Identity Name="HeyeTodo.Client"
-            Publisher="CN=HeyeTodo"
+  <Identity Name="GamerTodo.Client"
+            Publisher="CN=GamerTodo"
             Version="$displayVersion" />
   <Properties>
-    <DisplayName>HeyeTodo</DisplayName>
-    <PublisherDisplayName>HeyeTodo</PublisherDisplayName>
-    <Description>HeyeTodo desktop client</Description>
+    <DisplayName>GamerTodo</DisplayName>
+    <PublisherDisplayName>GamerTodo</PublisherDisplayName>
+    <Description>GamerTodo desktop client</Description>
     <Logo>Assets\\avalonia-logo.ico</Logo>
   </Properties>
   <Resources>
@@ -56,10 +56,10 @@ if ($displayVersion -notmatch '^\d+\.\d+\.\d+\.\d+$') {
   </Dependencies>
   <Applications>
     <Application Id="App"
-                 Executable="HeyeTodo.Client.exe"
+                 Executable="GamerTodo.Client.exe"
                  EntryPoint="Windows.FullTrustApplication">
-      <uap:VisualElements DisplayName="HeyeTodo"
-                          Description="HeyeTodo desktop client"
+      <uap:VisualElements DisplayName="GamerTodo"
+                          Description="GamerTodo desktop client"
                           BackgroundColor="transparent"
                           Square150x150Logo="Assets\\avalonia-logo.ico"
                           Square44x44Logo="Assets\\avalonia-logo.ico" />
@@ -71,7 +71,7 @@ if ($displayVersion -notmatch '^\d+\.\d+\.\d+\.\d+$') {
 </Package>
 "@ | Set-Content -Path $manifestPath -Encoding UTF8
 
-$logoSource = Join-Path $root "src\HeyeTodo.Client\Assets\avalonia-logo.ico"
+$logoSource = Join-Path $root "src\GamerTodo.Client\Assets\avalonia-logo.ico"
 $logoTargetDir = Join-Path $msixRoot "Assets"
 New-Item -ItemType Directory -Force -Path $logoTargetDir | Out-Null
 Copy-Item $logoSource (Join-Path $logoTargetDir "avalonia-logo.ico") -Force

@@ -8,10 +8,10 @@ param(
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
-$clientProject = Join-Path $root "src\HeyeTodo.Client\HeyeTodo.Client.csproj"
+$clientProject = Join-Path $root "src\GamerTodo.Client\GamerTodo.Client.csproj"
 $publishDir = Join-Path $root "$OutputRoot\client-$Runtime"
 $packageDir = Join-Path $root $OutputRoot
-$zipPath = Join-Path $packageDir "HeyeTodo-client-$Runtime-$Version.zip"
+$zipPath = Join-Path $packageDir "GamerTodo-client-$Runtime-$Version.zip"
 
 New-Item -ItemType Directory -Force -Path $publishDir | Out-Null
 New-Item -ItemType Directory -Force -Path $packageDir | Out-Null
